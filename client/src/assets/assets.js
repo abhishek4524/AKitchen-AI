@@ -12,6 +12,7 @@ import vegan from './vegan.jpeg'
 import biryani from './biryani.jpg'
 import paneer from './paneer.jpg'
 import pancake from './pancake.webp'
+import aiRecipeHero from './aiRecipeHero.png'
 
 export const assets = {
     hero,
@@ -27,5 +28,6 @@ export const assets = {
     vegan,
     biryani,
     pancake,
-    paneer
+    paneer,
+    aiRecipeHero
 }
