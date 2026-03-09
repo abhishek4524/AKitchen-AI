@@ -13,6 +13,7 @@ import biryani from './biryani.jpg'
 import paneer from './paneer.jpg'
 import pancake from './pancake.webp'
 import aiRecipeHero from './aiRecipeHero.png'
+import heroBgRm from './heroBgRm.png'
 
 export const assets = {
     hero,
@@ -29,5 +30,6 @@ export const assets = {
     biryani,
     pancake,
     paneer,
-    aiRecipeHero
+    aiRecipeHero,
+    heroBgRm
 }
