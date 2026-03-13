@@ -8,6 +8,7 @@ import AboutPage from './pages/AboutPage'
 import LoginPage from './pages/Login'
 import Signup from './pages/Signup'
 import MealPlanner from './pages/MealPlanner'
+import Dashboard from './pages/Dashboard'
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
         <Route path='/login' element={<LoginPage />} />
         <Route path='/signup' element={<Signup />} />
         <Route path='/meal-planner' element={<MealPlanner />} />
+        <Route path='/dashboard' element={<Dashboard />} />
       </Routes>
     </div>
   )
