@@ -3,89 +3,181 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ReviewSection from "../components/ReviewSection";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const AIRecipe = () => {
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token"); // or from auth context
+
+  // If no token, render the sample page
+// BEFORE LOGIN VERSION (IMPROVED)
+
+if (!token) {
+  const [demoIngredients, setDemoIngredients] = useState("");
+  const [demoRecipe, setDemoRecipe] = useState(null);
+
+  const handleDemo = () => {
+    // Fake demo response (instant UX)
+    setDemoRecipe({
+      title: "Paneer Butter Masala 🍛",
+      time: "30 mins",
+      steps: [
+        "Heat butter in a pan",
+        "Add onions, tomatoes & spices",
+        "Add paneer cubes",
+        "Cook for 10 mins & serve hot"
+      ],
+    });
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#feb7bb] to-[#ffd6d9]">
+      <Navbar />
+
+      <div className="relative min-h-screen pt-24 px-4 flex flex-col items-center justify-center text-center">
+
+        {/* 🔥 HEADLINE */}
+        <h1 className="text-4xl md:text-6xl font-extrabold mb-4">
+          Turn Ingredients into Delicious Recipes 🍳
+        </h1>
+
+        {/* 💡 SUBTEXT */}
+        <p className="text-gray-700 text-lg md:text-xl max-w-2xl mb-8">
+          Just type ingredients like <b>"tomato, onion, paneer"</b>  
+          and get a complete recipe with steps, nutrition & grocery list instantly.
+        </p>
+
+        {/* 🧪 DEMO INPUT */}
+        <div className="w-full max-w-xl bg-white shadow-xl rounded-2xl p-6 mb-6">
+          <input
+            type="text"
+            placeholder="Try: Tomato, Onion, Paneer..."
+            value={demoIngredients}
+            onChange={(e) => setDemoIngredients(e.target.value)}
+            className="w-full border p-3 rounded-lg mb-4 outline-none focus:ring-2 focus:ring-green-300"
+          />
+
+          <div className="flex gap-3">
+            {/* 🔥 PRIMARY CTA */}
+            <button
+              onClick={handleDemo}
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold"
+            >
+              ✨ Try Demo
+            </button>
+
+            {/* 🔐 SECONDARY CTA */}
+            <button
+              onClick={() => navigate("/login")}
+              className="flex-1 border border-gray-300 py-3 rounded-lg font-semibold hover:bg-gray-100"
+            >
+              🔐 Login
+            </button>
+          </div>
+        </div>
+
+        {/* ⚡ FEATURES */}
+        <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600 mb-6">
+          <span>⚡ Instant recipes</span>
+          <span>🥗 Smart nutrition</span>
+          <span>🛒 Auto grocery list</span>
+        </div>
+
+        {/* 🍛 DEMO OUTPUT */}
+        {demoRecipe && (
+          <div className="bg-white shadow-2xl rounded-2xl p-6 w-full max-w-xl text-left">
+            <h2 className="text-2xl font-bold mb-2">{demoRecipe.title}</h2>
+            <p className="text-gray-500 mb-3">⏱ {demoRecipe.time}</p>
+
+            <h3 className="font-semibold mb-2">Steps:</h3>
+            <ul className="list-disc pl-5 space-y-1 text-gray-700">
+              {demoRecipe.steps.map((step, i) => (
+                <li key={i}>{step}</li>
+              ))}
+            </ul>
+
+            {/* 🔥 FINAL CTA */}
+            <button
+              onClick={() => navigate("/login")}
+              className="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold"
+            >
+              🚀 Unlock Full Features
+            </button>
+          </div>
+        )}
+
+      </div>
+
+      <Footer />
+    </div>
+  );
+}
+
   const [ingredients, setIngredients] = useState("");
   const [cuisine, setCuisine] = useState("");
   const [diet, setDiet] = useState("");
   const [saved, setSaved] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showRecipe, setShowRecipe] = useState(false);
+  const [generatedRecipe, setGeneratedRecipe] = useState(null); // NEW: state for recipe from API
 
-  // Sample recipes data
+  // Sample similar recipes (static for now)
   const recipes = [
     {
       id: 1,
       title: "Paneer Butter Masala",
       time: "30 mins",
-      image: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+      image:
+        "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       cuisine: "Indian",
-      difficulty: "Medium"
+      difficulty: "Medium",
     },
     {
       id: 2,
       title: "Margherita Pizza",
       time: "20 mins",
-      image: "https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+      image:
+        "https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       cuisine: "Italian",
-      difficulty: "Easy"
+      difficulty: "Easy",
     },
     {
       id: 3,
       title: "Vegetable Stir Fry",
       time: "15 mins",
-      image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+      image:
+        "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
       cuisine: "Chinese",
-      difficulty: "Easy"
-    }
+      difficulty: "Easy",
+    },
   ];
 
-  const recipe = {
-    title: "Paneer Tomato Masala",
-    time: "25 minutes",
-    servings: "2 servings",
-    difficulty: "Easy",
-    cuisine: "Indian",
-    image: "https://as2.ftcdn.net/v2/jpg/07/38/73/03/1000_F_738730367_GeWP43o9ofUuSH63g5l5HuehCf9zWfQ1.jpg",
-    ingredients: [
-      "200g Paneer (cubed)",
-      "2 Tomatoes (finely chopped)",
-      "1 Onion (finely chopped)",
-      "2 Garlic cloves (minced)",
-      "1 tsp Cumin seeds",
-      "1 tsp Turmeric powder",
-      "1 tsp Red chili powder",
-      "1 tsp Garam masala",
-      "2 tbsp Oil",
-      "Salt to taste",
-      "Fresh coriander",
-    ],
-    steps: [
-      "Heat oil in a pan and add cumin seeds",
-      "Add onions and sauté until golden",
-      "Add garlic and cook for a minute",
-      "Add tomatoes and cook until soft",
-      "Add spices and mix well",
-      "Cook until oil separates",
-      "Add paneer cubes and cook gently",
-      "Garnish with fresh coriander and serve",
-    ],
-    nutrition: {
-      calories: "320 kcal",
-      protein: "12g",
-      carbs: "15g",
-      fat: "24g",
-    },
-  };
-
-  const handleGenerate = () => {
+  // API call to generate recipe
+  const handleGenerate = async () => {
     setIsGenerating(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsGenerating(false);
+    setShowRecipe(false); // hide previous recipe while loading
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/ai/generate-recipe",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ingredients, cuisine, diet }),
+        },
+      );
+
+      if (!response.ok) throw new Error("Failed to generate recipe");
+
+      const data = await response.json();
+      setGeneratedRecipe(data);
       setShowRecipe(true);
-      console.log({ ingredients, cuisine, diet });
-    }, 1500);
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Failed to generate recipe. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const RecipeCard = ({ recipe }) => (
@@ -206,17 +298,19 @@ const AIRecipe = () => {
             {/* Suggestions */}
             <div className="flex items-center gap-2 mt-6 flex-wrap">
               <span className="text-gray-500 font-medium">Try:</span>
-              {["Paneer", "Pasta", "Chicken", "Egg", "Tofu", "Mushroom"].map((item, index) => (
-                <motion.button
-                  key={item}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setIngredients(item)}
-                  className="px-4 py-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all duration-300 text-sm font-medium"
-                >
-                  🍳 {item}
-                </motion.button>
-              ))}
+              {["Paneer", "Pasta", "Chicken", "Egg", "Tofu", "Mushroom"].map(
+                (item, index) => (
+                  <motion.button
+                    key={item}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setIngredients(item)}
+                    className="px-4 py-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all duration-300 text-sm font-medium"
+                  >
+                    🍳 {item}
+                  </motion.button>
+                ),
+              )}
             </div>
 
             <motion.button
@@ -228,9 +322,25 @@ const AIRecipe = () => {
             >
               {isGenerating ? (
                 <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   Generating...
                 </span>
@@ -241,9 +351,9 @@ const AIRecipe = () => {
           </div>
         </motion.div>
 
-        {/* Recipe Result */}
+        {/* Recipe Result - NOW USES generatedRecipe */}
         <AnimatePresence>
-          {showRecipe && (
+          {showRecipe && generatedRecipe && (
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
@@ -255,53 +365,72 @@ const AIRecipe = () => {
                 {/* Image Section */}
                 <div className="relative h-96 overflow-hidden group">
                   <img
-                    src={recipe.image}
-                    alt={recipe.title}
+                    src={
+                      generatedRecipe.image ||
+                      "https://via.placeholder.com/800x400?text=Recipe"
+                    }
+                    alt={generatedRecipe.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
-                  
+
                   <div className="absolute bottom-8 left-8 text-white">
-                    <motion.h2 
+                    <motion.h2
                       initial={{ x: -20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       transition={{ delay: 0.2 }}
                       className="text-5xl font-bold mb-3"
                     >
-                      {recipe.title}
+                      {generatedRecipe.title}
                     </motion.h2>
-                    
-                    <motion.div 
+
+                    <motion.div
                       initial={{ x: -20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       transition={{ delay: 0.3 }}
                       className="flex flex-wrap gap-4 text-sm"
                     >
-                      <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full">⏱ {recipe.time}</span>
-                      <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full">🍽 {recipe.servings}</span>
-                      <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full">📊 {recipe.difficulty}</span>
-                      <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full">🍛 {recipe.cuisine}</span>
+                      <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full">
+                        ⏱ {generatedRecipe.time || "N/A"}
+                      </span>
+                      <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full">
+                        🍽 {generatedRecipe.servings || "2 servings"}
+                      </span>
+                      <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full">
+                        📊 {generatedRecipe.difficulty || "Medium"}
+                      </span>
+                      <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full">
+                        🍛 {generatedRecipe.cuisine || cuisine || "Various"}
+                      </span>
                     </motion.div>
                   </div>
                 </div>
 
                 <div className="p-8 space-y-8">
-                  {/* Nutrition Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.entries(recipe.nutrition).map(([key, value], index) => (
-                      <motion.div
-                        key={key}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 * index }}
-                        whileHover={{ scale: 1.05 }}
-                        className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl text-center"
-                      >
-                        <p className="text-gray-500 text-sm capitalize">{key}</p>
-                        <p className="font-bold text-lg text-purple-600">{value}</p>
-                      </motion.div>
-                    ))}
-                  </div>
+                  {/* Nutrition Grid - only if nutrition object exists */}
+                  {generatedRecipe.nutrition && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {Object.entries(generatedRecipe.nutrition).map(
+                        ([key, value], index) => (
+                          <motion.div
+                            key={key}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 * index }}
+                            whileHover={{ scale: 1.05 }}
+                            className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl text-center"
+                          >
+                            <p className="text-gray-500 text-sm capitalize">
+                              {key}
+                            </p>
+                            <p className="font-bold text-lg text-purple-600">
+                              {value}
+                            </p>
+                          </motion.div>
+                        ),
+                      )}
+                    </div>
+                  )}
 
                   {/* Ingredients + Instructions */}
                   <div className="grid md:grid-cols-2 gap-8">
@@ -314,21 +443,30 @@ const AIRecipe = () => {
                         <span>🛒</span> Ingredients
                       </h3>
                       <div className="space-y-2">
-                        {recipe.ingredients.map((item, i) => (
-                          <motion.label
-                            key={i}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.05 * i }}
-                            className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl hover:bg-gray-100 transition-colors duration-300 cursor-pointer group"
-                          >
-                            <input 
-                              type="checkbox" 
-                              className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 transition-all duration-300 group-hover:scale-110"
-                            />
-                            <span className="text-gray-700">{item}</span>
-                          </motion.label>
-                        ))}
+                        {generatedRecipe.ingredients.map((item, i) => {
+                          // If item is an object, combine quantity and name; if it's already a string, use it as is
+                          const ingredientText =
+                            typeof item === "string"
+                              ? item
+                              : `${item.quantity} ${item.name}`.trim();
+                          return (
+                            <motion.label
+                              key={i}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.05 * i }}
+                              className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl hover:bg-gray-100 transition-colors duration-300 cursor-pointer group"
+                            >
+                              <input
+                                type="checkbox"
+                                className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 transition-all duration-300 group-hover:scale-110"
+                              />
+                              <span className="text-gray-700">
+                                {ingredientText}
+                              </span>
+                            </motion.label>
+                          );
+                        })}
                       </div>
                     </motion.div>
 
@@ -341,23 +479,43 @@ const AIRecipe = () => {
                         <span>📝</span> Instructions
                       </h3>
                       <div className="space-y-3">
-                        {recipe.steps.map((step, i) => (
-                          <motion.div
-                            key={i}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.05 * i }}
-                            className="flex gap-3 bg-gray-50 p-3 rounded-xl hover:bg-gray-100 transition-colors duration-300"
-                          >
-                            <div className="w-7 h-7 bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                              {i + 1}
-                            </div>
-                            <p className="text-gray-700">{step}</p>
-                          </motion.div>
-                        ))}
+                        {generatedRecipe.steps &&
+                        generatedRecipe.steps.length > 0 ? (
+                          generatedRecipe.steps.map((step, i) => (
+                            <motion.div
+                              key={i}
+                              initial={{ opacity: 0, x: 20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.05 * i }}
+                              className="flex gap-3 bg-gray-50 p-3 rounded-xl hover:bg-gray-100 transition-colors duration-300"
+                            >
+                              <div className="w-7 h-7 bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                {i + 1}
+                              </div>
+                              <p className="text-gray-700">{step}</p>
+                            </motion.div>
+                          ))
+                        ) : (
+                          <p className="text-gray-500">
+                            No instructions available.
+                          </p>
+                        )}
                       </div>
                     </motion.div>
                   </div>
+
+                  {/* Optional Chef Tips */}
+                  {generatedRecipe.chefTips &&
+                    generatedRecipe.chefTips.length > 0 && (
+                      <div className="bg-amber-50 p-4 rounded-xl">
+                        <h4 className="font-bold mb-2">💡 Chef’s Tips</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {generatedRecipe.chefTips.map((tip, i) => (
+                            <li key={i}>{tip}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-4 pt-4">
@@ -366,12 +524,12 @@ const AIRecipe = () => {
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setSaved(!saved)}
                       className={`flex-1 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                        saved 
-                          ? 'bg-red-500 text-white' 
-                          : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                        saved
+                          ? "bg-red-500 text-white"
+                          : "bg-gray-200 hover:bg-gray-300 text-gray-700"
                       }`}
                     >
-                      {saved ? '❤️ Saved' : '❤️ Save Recipe'}
+                      {saved ? "❤️ Saved" : "❤️ Save Recipe"}
                     </motion.button>
 
                     <motion.button
@@ -406,7 +564,7 @@ const AIRecipe = () => {
           <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">
             You Might Also Like
           </h2>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
             {recipes.map((recipe, index) => (
               <RecipeCard key={recipe.id} recipe={recipe} />

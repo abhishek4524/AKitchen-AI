@@ -2,220 +2,8 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { assets } from "../assets/assets";
-
-// Expanded recipe database with more items
-const allRecipes = [
-  // Trending Recipes
-  {
-    id: 1,
-    title: "Paneer Butter Masala",
-    img: assets.paneer,
-    time: "30 min",
-    rating: 4.8,
-    cuisine: "Indian",
-    difficulty: "Medium",
-    category: "trending",
-    ingredients: ["Paneer", "Butter", "Cream", "Spices"],
-    description: "Creamy and rich paneer curry in tomato gravy"
-  },
-  {
-    id: 2,
-    title: "Veg Biryani",
-    img: assets.biryani,
-    time: "45 min",
-    rating: 4.7,
-    cuisine: "Indian",
-    difficulty: "Hard",
-    category: "trending",
-    ingredients: ["Rice", "Mixed Vegetables", "Spices", "Yogurt"],
-    description: "Fragrant rice dish layered with vegetables and spices"
-  },
-  {
-    id: 3,
-    title: "Creamy Alfredo Pasta",
-    img: assets.pasta,
-    time: "25 min",
-    rating: 4.5,
-    cuisine: "Italian",
-    difficulty: "Easy",
-    category: "trending",
-    ingredients: ["Pasta", "Cream", "Parmesan", "Garlic"],
-    description: "Rich and creamy white sauce pasta"
-  },
-  {
-    id: 4,
-    title: "Chicken Curry",
-    img: assets.chicken,
-    time: "40 min",
-    rating: 4.8,
-    cuisine: "Indian",
-    difficulty: "Medium",
-    category: "trending",
-    ingredients: ["Chicken", "Onions", "Tomatoes", "Spices"],
-    description: "Classic Indian chicken curry with aromatic spices"
-  },
-  
-  // AI Generated Recipes
-  {
-    id: 5,
-    title: "Spicy Garlic Paneer",
-    img: assets.paneer,
-    time: "20 min",
-    rating: 4.6,
-    cuisine: "Indian",
-    difficulty: "Easy",
-    category: "aiGenerated",
-    ingredients: ["Paneer", "Garlic", "Red Chili", "Spices"],
-    description: "Quick and spicy paneer stir-fry"
-  },
-  {
-    id: 6,
-    title: "Veggie Egg Fried Rice",
-    img: assets.friedRice,
-    time: "25 min",
-    rating: 4.4,
-    cuisine: "Chinese",
-    difficulty: "Easy",
-    category: "aiGenerated",
-    ingredients: ["Rice", "Eggs", "Mixed Vegetables", "Soy Sauce"],
-    description: "Perfect fusion of Indo-Chinese flavors"
-  },
-  {
-    id: 7,
-    title: "Tomato Basil Pasta",
-    img: assets.pasta,
-    time: "20 min",
-    rating: 4.5,
-    cuisine: "Italian",
-    difficulty: "Easy",
-    category: "aiGenerated",
-    ingredients: ["Pasta", "Tomatoes", "Fresh Basil", "Olive Oil"],
-    description: "Simple and fresh Italian pasta"
-  },
-  {
-    id: 8,
-    title: "Cheesy Masala Omelette",
-    img: assets.omelette,
-    time: "15 min",
-    rating: 4.3,
-    cuisine: "Fusion",
-    difficulty: "Easy",
-    category: "aiGenerated",
-    ingredients: ["Eggs", "Cheese", "Onions", "Indian Spices"],
-    description: "Indian-style spicy omelette with cheese"
-  },
-  
-  // Most Cooked Recipes
-  {
-    id: 9,
-    title: "Chicken Tikka",
-    img: assets.chicken,
-    time: "35 min",
-    rating: 4.9,
-    cuisine: "Indian",
-    difficulty: "Medium",
-    category: "mostCooked",
-    ingredients: ["Chicken", "Yogurt", "Tikka Masala", "Spices"],
-    description: "Tandoori-style grilled chicken pieces"
-  },
-  {
-    id: 10,
-    title: "Veg Pizza",
-    img: assets.pizza,
-    time: "30 min",
-    rating: 4.7,
-    cuisine: "Italian",
-    difficulty: "Medium",
-    category: "mostCooked",
-    ingredients: ["Pizza Base", "Cheese", "Vegetables", "Pizza Sauce"],
-    description: "Loaded vegetable pizza with mozzarella"
-  },
-  {
-    id: 11,
-    title: "Avocado Salad",
-    img: assets.salad,
-    time: "10 min",
-    rating: 4.5,
-    cuisine: "Healthy",
-    difficulty: "Easy",
-    category: "mostCooked",
-    ingredients: ["Avocado", "Lettuce", "Cherry Tomatoes", "Olive Oil"],
-    description: "Fresh and healthy avocado salad"
-  },
-  {
-    id: 12,
-    title: "Creamy Mushroom Pasta",
-    img: assets.pasta,
-    time: "25 min",
-    rating: 4.6,
-    cuisine: "Italian",
-    difficulty: "Medium",
-    category: "mostCooked",
-    ingredients: ["Pasta", "Mushrooms", "Cream", "Garlic"],
-    description: "Rich mushroom pasta in creamy sauce"
-  },
-  
-  // Additional Recipes for Load More
-  {
-    id: 13,
-    title: "Butter Chicken",
-    img: assets.chicken,
-    time: "45 min",
-    rating: 4.9,
-    cuisine: "Indian",
-    difficulty: "Medium",
-    category: "additional",
-    ingredients: ["Chicken", "Butter", "Cream", "Spices"],
-    description: "Famous Indian butter chicken"
-  },
-  {
-    id: 14,
-    title: "Masala Dosa",
-    img: assets.biryani,
-    time: "30 min",
-    rating: 4.7,
-    cuisine: "Indian",
-    difficulty: "Hard",
-    category: "additional",
-    ingredients: ["Rice", "Lentils", "Potatoes", "Spices"],
-    description: "Crispy dosa with spiced potato filling"
-  },
-  {
-    id: 15,
-    title: "Chocolate Brownie",
-    img: assets.pasta,
-    time: "35 min",
-    rating: 4.8,
-    cuisine: "Desserts",
-    difficulty: "Medium",
-    category: "additional",
-    ingredients: ["Chocolate", "Flour", "Eggs", "Sugar"],
-    description: "Fudgy chocolate brownies"
-  },
-  {
-    id: 16,
-    title: "Mango Smoothie",
-    img: assets.salad,
-    time: "5 min",
-    rating: 4.5,
-    cuisine: "Drinks",
-    difficulty: "Easy",
-    category: "additional",
-    ingredients: ["Mango", "Yogurt", "Honey", "Ice"],
-    description: "Refreshing mango smoothie"
-  }
-];
-
-const categories = [
-  { name: "All", icon: "🍽️", count: allRecipes.length },
-  { name: "Indian", icon: "🍛", count: allRecipes.filter(r => r.cuisine === "Indian").length },
-  { name: "Italian", icon: "🍝", count: allRecipes.filter(r => r.cuisine === "Italian").length },
-  { name: "Healthy", icon: "🥗", count: allRecipes.filter(r => r.cuisine === "Healthy").length },
-  { name: "Vegan", icon: "🌱", count: allRecipes.filter(r => r.difficulty === "Easy" && r.cuisine !== "Non-Veg").length },
-  { name: "Quick & Easy", icon: "⚡", count: allRecipes.filter(r => r.difficulty === "Easy").length },
-  { name: "Drinks", icon: "🥤", count: allRecipes.filter(r => r.cuisine === "Drinks").length },
-  { name: "Desserts", icon: "🍰", count: allRecipes.filter(r => r.cuisine === "Desserts").length }
-];
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const RecipeCard = ({ recipe, index, onQuickView }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -230,48 +18,54 @@ const RecipeCard = ({ recipe, index, onQuickView }) => {
     >
       <div className="overflow-hidden h-52">
         <img
-          src={recipe.img}
+          src={recipe.img || recipe.image || assets.paneer}
           className={`w-full h-full object-cover transition-transform duration-700 ${
             isHovered ? "scale-110" : "scale-100"
           }`}
           alt={recipe.title}
           loading="lazy"
+          onError={(e) => {
+            e.target.src = assets.paneer;
+          }}
         />
       </div>
-
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-90"></div>
-
       <div className="absolute bottom-0 left-0 right-0 p-4 text-white transform transition-transform duration-300">
         <h3 className="font-bold text-lg mb-1 line-clamp-1 group-hover:text-purple-200 transition-colors">
           {recipe.title}
         </h3>
-
         <div className="flex items-center gap-3 text-sm mb-2">
           <span className="bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full text-xs">
-            {recipe.cuisine}
+            {recipe.cuisine || "Other"}
           </span>
-          <span className={`text-xs px-2 py-1 rounded-full ${
-            recipe.difficulty === 'Easy' ? 'bg-green-500/30' :
-            recipe.difficulty === 'Medium' ? 'bg-yellow-500/30' :
-            'bg-red-500/30'
-          } backdrop-blur-sm`}>
-            {recipe.difficulty}
+          <span
+            className={`text-xs px-2 py-1 rounded-full ${
+              recipe.difficulty === "Easy"
+                ? "bg-green-500/30"
+                : recipe.difficulty === "Medium"
+                  ? "bg-yellow-500/30"
+                  : "bg-red-500/30"
+            } backdrop-blur-sm`}
+          >
+            {recipe.difficulty || "Medium"}
           </span>
         </div>
-
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 text-sm">
             <span className="flex items-center gap-1">
-              <span className="text-yellow-300">⏱️</span> {recipe.time}
+              <span className="text-yellow-300">⏱️</span>{" "}
+              {recipe.time || "30 min"}
             </span>
             <span className="flex items-center gap-1">
-              <span className="text-yellow-300">⭐</span> {recipe.rating}
+              <span className="text-yellow-300">⭐</span>{" "}
+              {recipe.rating || recipe.averageRating || 4.5}
             </span>
           </div>
-
           <button
             className={`bg-white text-purple-600 px-3 py-1 rounded-full text-xs font-semibold transform transition-all duration-300 ${
-              isHovered ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"
+              isHovered
+                ? "translate-y-0 opacity-100"
+                : "translate-y-5 opacity-0"
             } hover:bg-purple-600 hover:text-white`}
             onClick={(e) => {
               e.stopPropagation();
@@ -286,9 +80,11 @@ const RecipeCard = ({ recipe, index, onQuickView }) => {
   );
 };
 
-const Section = ({ title, recipes, viewAllLink, onViewAll, onQuickView }) => {
+const Section = ({ title, recipes, onViewAll, onQuickView }) => {
   const [showAll, setShowAll] = useState(false);
   const displayedRecipes = showAll ? recipes : recipes.slice(0, 4);
+
+  if (!recipes || recipes.length === 0) return null;
 
   return (
     <div className="mt-16 animate-slideUp">
@@ -297,25 +93,26 @@ const Section = ({ title, recipes, viewAllLink, onViewAll, onQuickView }) => {
           {title}
         </h2>
         {recipes.length > 4 && (
-          <button 
+          <button
             className="group flex items-center gap-2 text-gray-600 hover:text-purple-600 transition-colors duration-300"
             onClick={() => setShowAll(!showAll)}
           >
-            <span>{showAll ? 'Show Less' : 'View All'}</span>
-            <span className={`transform transition-transform duration-300 ${
-              showAll ? 'rotate-180' : 'group-hover:translate-x-1'
-            }`}>
-              {showAll ? '↑' : '→'}
+            <span>{showAll ? "Show Less" : "View All"}</span>
+            <span
+              className={`transform transition-transform duration-300 ${
+                showAll ? "rotate-180" : "group-hover:translate-x-1"
+              }`}
+            >
+              {showAll ? "↑" : "→"}
             </span>
           </button>
         )}
       </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {displayedRecipes.map((recipe, index) => (
-          <RecipeCard 
-            key={recipe.id} 
-            recipe={recipe} 
+          <RecipeCard
+            key={recipe.id || recipe._id}
+            recipe={recipe}
             index={index}
             onQuickView={onQuickView}
           />
@@ -325,52 +122,99 @@ const Section = ({ title, recipes, viewAllLink, onViewAll, onQuickView }) => {
   );
 };
 
-// Quick View Modal Component
 const QuickViewModal = ({ recipe, onClose }) => {
+  const navigate = useNavigate();
+
   if (!recipe) return null;
 
+  const handleViewFullRecipe = () => {
+    navigate(`/recipe/${recipe.id || recipe._id}`);
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slideUp">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slideUp"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="relative">
-          <img 
-            src={recipe.img} 
+          <img
+            src={recipe.img || recipe.image || assets.paneer}
             alt={recipe.title}
             className="w-full h-64 object-cover"
+            onError={(e) => {
+              e.target.src = assets.paneer;
+            }}
           />
-          <button 
+          <button
             onClick={onClose}
             className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-full hover:bg-white transition-colors"
           >
             ✕
           </button>
         </div>
-        
+
         <div className="p-6">
           <h2 className="text-2xl font-bold mb-2">{recipe.title}</h2>
-          
-          <div className="flex gap-4 mb-4">
+
+          <div className="flex gap-4 mb-4 flex-wrap">
             <span className="flex items-center gap-1 bg-purple-100 text-purple-600 px-3 py-1 rounded-full">
-              ⏱️ {recipe.time}
+              ⏱️ {recipe.time || "30 min"}
             </span>
             <span className="flex items-center gap-1 bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full">
-              ⭐ {recipe.rating}
+              ⭐ {recipe.rating || recipe.averageRating || 4.5}
             </span>
             <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
-              {recipe.cuisine}
+              {recipe.cuisine || "Other"}
             </span>
+            {recipe.diet && (
+              <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full">
+                {recipe.diet}
+              </span>
+            )}
+            {recipe.aiGenerated && (
+              <span className="bg-purple-100 text-purple-600 px-3 py-1 rounded-full">
+                🤖 AI Generated
+              </span>
+            )}
           </div>
-          
-          <p className="text-gray-600 mb-4">{recipe.description}</p>
-          
-          <h3 className="font-semibold mb-2">Ingredients:</h3>
-          <ul className="list-disc list-inside mb-4 text-gray-600">
-            {recipe.ingredients.map((ing, i) => (
-              <li key={i}>{ing}</li>
-            ))}
-          </ul>
-          
-          <button className="w-full bg-purple-600 text-white py-3 rounded-xl hover:bg-purple-700 transition-colors font-semibold">
+
+          <p className="text-gray-600 mb-4">
+            {recipe.description || "No description available."}
+          </p>
+
+          {recipe.ingredients && recipe.ingredients.length > 0 && (
+            <>
+              <h3 className="font-semibold mb-2">Ingredients:</h3>
+              <ul className="list-disc list-inside mb-4 text-gray-600">
+                {recipe.ingredients.map((ing, i) => {
+                  // Convert ingredient to a string
+                  let ingredientText = "";
+                  if (typeof ing === "string") {
+                    ingredientText = ing;
+                  } else if (ing && typeof ing === "object") {
+                    // Handle object with quantity and name
+                    ingredientText =
+                      `${ing.quantity || ""} ${ing.name || ""}`.trim();
+                    if (!ingredientText)
+                      ingredientText = ing.name || JSON.stringify(ing);
+                  } else {
+                    ingredientText = String(ing);
+                  }
+                  return <li key={i}>{ingredientText}</li>;
+                })}
+              </ul>
+            </>
+          )}
+
+          <button
+            onClick={handleViewFullRecipe}
+            className="w-full bg-purple-600 text-white py-3 rounded-xl hover:bg-purple-700 transition-colors font-semibold"
+          >
             View Full Recipe
           </button>
         </div>
@@ -384,38 +228,189 @@ const ExplorePage = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [displayCount, setDisplayCount] = useState(12);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
-  const [filteredRecipes, setFilteredRecipes] = useState(allRecipes);
+  const [filteredRecipes, setFilteredRecipes] = useState([]);
+  const [allRecipes, setAllRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Categories with default counts
+  const [categories, setCategories] = useState([
+    { name: "All", icon: "🍽️", count: 0 },
+    { name: "Indian", icon: "🍛", count: 0 },
+    { name: "Italian", icon: "🍝", count: 0 },
+    { name: "Chinese", icon: "🥡", count: 0 },
+    { name: "Mexican", icon: "🌮", count: 0 },
+    { name: "Healthy", icon: "🥗", count: 0 },
+    { name: "Quick & Easy", icon: "⚡", count: 0 },
+    { name: "Desserts", icon: "🍰", count: 0 },
+  ]);
+
+  // Fetch recipes from server
+  useEffect(() => {
+    fetchRecipes();
+  }, []);
+
+  const fetchRecipes = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Replace with your actual API endpoint
+      const response = await axios.get("http://localhost:5000/api/recipes");
+      const recipes = response.data;
+
+      // Transform server data to match frontend format
+      const transformedRecipes = recipes.map((recipe) => ({
+        id: recipe._id,
+        _id: recipe._id,
+        title: recipe.title,
+        image: recipe.image || assets.paneer,
+        img: recipe.image || assets.paneer,
+        time: recipe.time || recipe.cookingTime || "30 min",
+        rating: recipe.averageRating || 4.5,
+        cuisine: recipe.cuisine || "Other",
+        difficulty: recipe.difficulty || "Medium",
+        category: recipe.aiGenerated ? "aiGenerated" : "trending",
+        ingredients: recipe.ingredients || [],
+        description: recipe.description || "",
+        diet: recipe.diet || "Non-Veg",
+        createdBy: recipe.createdBy,
+        aiGenerated: recipe.aiGenerated || false,
+        createdAt: recipe.createdAt,
+        instructions: recipe.instructions || [],
+      }));
+
+      setAllRecipes(transformedRecipes);
+      setFilteredRecipes(transformedRecipes);
+
+      // Update category counts
+      updateCategoryCounts(transformedRecipes);
+    } catch (err) {
+      console.error("Error fetching recipes:", err);
+      setError(
+        "Failed to load recipes. Please check your connection and try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateCategoryCounts = (recipes) => {
+    setCategories((prev) =>
+      prev.map((cat) => {
+        let count = 0;
+        const catLower = cat.name.toLowerCase();
+
+        switch (cat.name) {
+          case "All":
+            count = recipes.length;
+            break;
+          case "Indian":
+            count = recipes.filter(
+              (r) => r.cuisine?.toLowerCase() === "indian",
+            ).length;
+            break;
+          case "Italian":
+            count = recipes.filter(
+              (r) => r.cuisine?.toLowerCase() === "italian",
+            ).length;
+            break;
+          case "Chinese":
+            count = recipes.filter(
+              (r) => r.cuisine?.toLowerCase() === "chinese",
+            ).length;
+            break;
+          case "Mexican":
+            count = recipes.filter(
+              (r) => r.cuisine?.toLowerCase() === "mexican",
+            ).length;
+            break;
+          case "Healthy":
+            count = recipes.filter(
+              (r) =>
+                r.diet?.toLowerCase() === "healthy" ||
+                r.cuisine?.toLowerCase() === "healthy" ||
+                r.tags?.includes("healthy"),
+            ).length;
+            break;
+          case "Quick & Easy":
+            count = recipes.filter(
+              (r) =>
+                r.difficulty?.toLowerCase() === "easy" ||
+                (r.time && parseInt(r.time) <= 30),
+            ).length;
+            break;
+          case "Desserts":
+            count = recipes.filter(
+              (r) =>
+                r.cuisine?.toLowerCase() === "desserts" ||
+                r.category?.toLowerCase() === "desserts" ||
+                r.tags?.includes("dessert"),
+            ).length;
+            break;
+          default:
+            count = 0;
+        }
+        return { ...cat, count };
+      }),
+    );
+  };
 
   // Filter recipes based on search and category
   useEffect(() => {
-    let filtered = allRecipes;
+    if (allRecipes.length === 0) return;
+
+    let filtered = [...allRecipes];
 
     // Apply category filter
     if (selectedCategory !== "All") {
-      filtered = filtered.filter(recipe => 
-        recipe.cuisine === selectedCategory || 
-        (selectedCategory === "Quick & Easy" && recipe.difficulty === "Easy") ||
-        (selectedCategory === "Vegan" && !recipe.ingredients?.some(i => 
-          i.toLowerCase().includes('chicken') || 
-          i.toLowerCase().includes('egg') || 
-          i.toLowerCase().includes('paneer')
-        ))
-      );
+      filtered = filtered.filter((recipe) => {
+        const cuisine = recipe.cuisine?.toLowerCase() || "";
+        const diet = recipe.diet?.toLowerCase() || "";
+        const difficulty = recipe.difficulty?.toLowerCase() || "";
+        const tags = recipe.tags?.map((t) => t.toLowerCase()) || [];
+        const time = parseInt(recipe.time) || 0;
+
+        switch (selectedCategory) {
+          case "Indian":
+            return cuisine === "indian";
+          case "Italian":
+            return cuisine === "italian";
+          case "Chinese":
+            return cuisine === "chinese";
+          case "Mexican":
+            return cuisine === "mexican";
+          case "Healthy":
+            return (
+              diet === "healthy" ||
+              cuisine === "healthy" ||
+              tags.includes("healthy")
+            );
+          case "Quick & Easy":
+            return difficulty === "easy" || time <= 30;
+          case "Desserts":
+            return cuisine === "desserts" || tags.includes("dessert");
+          default:
+            return true;
+        }
+      });
     }
 
     // Apply search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(recipe =>
-        recipe.title.toLowerCase().includes(term) ||
-        recipe.cuisine.toLowerCase().includes(term) ||
-        recipe.ingredients?.some(i => i.toLowerCase().includes(term)) ||
-        recipe.description?.toLowerCase().includes(term)
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(
+        (recipe) =>
+          recipe.title?.toLowerCase().includes(term) ||
+          recipe.cuisine?.toLowerCase().includes(term) ||
+          recipe.ingredients?.some((i) => i?.toLowerCase().includes(term)) ||
+          recipe.description?.toLowerCase().includes(term) ||
+          recipe.diet?.toLowerCase().includes(term),
       );
     }
 
     setFilteredRecipes(filtered);
-  }, [selectedCategory, searchTerm]);
+  }, [selectedCategory, searchTerm, allRecipes]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -423,21 +418,80 @@ const ExplorePage = () => {
   };
 
   const handleLoadMore = () => {
-    setDisplayCount(prev => prev + 8);
+    setDisplayCount((prev) => prev + 8);
   };
 
   const handleViewAll = (category) => {
     setSelectedCategory(category);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const getRecipesByCategory = (category) => {
-    return filteredRecipes.filter(r => r.category === category).slice(0, 4);
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedCategory("All");
   };
 
-  const trendingRecipes = getRecipesByCategory("trending");
-  const aiGeneratedRecipes = getRecipesByCategory("aiGenerated");
-  const mostCookedRecipes = getRecipesByCategory("mostCooked");
+  // Get recipes by type
+  const getRecipesByType = (type) => {
+    if (type === "aiGenerated") {
+      return filteredRecipes.filter((r) => r.aiGenerated === true);
+    } else if (type === "trending") {
+      // You can implement your trending logic here
+      // For now, return recipes with highest ratings
+      return [...filteredRecipes].sort(
+        (a, b) => (b.rating || 0) - (a.rating || 0),
+      );
+    } else if (type === "recent") {
+      // Most recent recipes
+      return [...filteredRecipes].sort(
+        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
+      );
+    }
+    return [];
+  };
+
+  const trendingRecipes = getRecipesByType("trending");
+  const aiGeneratedRecipes = getRecipesByType("aiGenerated");
+  const recentRecipes = getRecipesByType("recent");
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading delicious recipes...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <span className="text-6xl mb-4 block">😕</span>
+            <h3 className="text-2xl font-bold mb-2">Oops!</h3>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <button
+              onClick={fetchRecipes}
+              className="bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
@@ -445,9 +499,9 @@ const ExplorePage = () => {
 
       {/* Quick View Modal */}
       {selectedRecipe && (
-        <QuickViewModal 
-          recipe={selectedRecipe} 
-          onClose={() => setSelectedRecipe(null)} 
+        <QuickViewModal
+          recipe={selectedRecipe}
+          onClose={() => setSelectedRecipe(null)}
         />
       )}
 
@@ -484,11 +538,15 @@ const ExplorePage = () => {
             Explore <span className="text-purple-600">Recipes</span>
           </h1>
           <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto animate-fadeInUp">
-            Discover {filteredRecipes.length} delicious recipes created by AI and our community
+            Discover {filteredRecipes.length} delicious recipes created by AI
+            and our community
           </p>
 
           {/* Search Form */}
-          <form onSubmit={handleSearch} className="flex items-center bg-white shadow-xl rounded-full overflow-hidden max-w-2xl mx-auto transform hover:scale-105 transition-transform duration-300 animate-fadeIn">
+          <form
+            onSubmit={handleSearch}
+            className="flex items-center bg-white shadow-xl rounded-full overflow-hidden max-w-2xl mx-auto transform hover:scale-105 transition-transform duration-300 animate-fadeIn"
+          >
             <input
               type="text"
               placeholder="Search recipes, ingredients, cuisines..."
@@ -496,7 +554,7 @@ const ExplorePage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button 
+            <button
               type="submit"
               className="bg-purple-600 text-white px-8 py-4 font-semibold hover:bg-purple-700 transition-colors duration-300 flex items-center gap-2"
             >
@@ -552,32 +610,32 @@ const ExplorePage = () => {
       <div className="max-w-6xl mx-auto px-4 pb-20 relative z-10">
         {filteredRecipes.length > 0 ? (
           <>
-            {selectedCategory === "All" && searchTerm === "" ? (
+            {selectedCategory === "All" && !searchTerm ? (
               // Show all sections when no filters are applied
               <>
                 {trendingRecipes.length > 0 && (
-                  <Section 
-                    title="🔥 Trending Recipes" 
+                  <Section
+                    title="🔥 Trending Recipes"
                     recipes={trendingRecipes}
-                    onViewAll={() => handleViewAll("Indian")}
+                    onViewAll={() => {}}
                     onQuickView={setSelectedRecipe}
                   />
                 )}
-                
+
+                {recentRecipes.length > 0 && (
+                  <Section
+                    title="🆕 Recently Added"
+                    recipes={recentRecipes}
+                    onViewAll={() => {}}
+                    onQuickView={setSelectedRecipe}
+                  />
+                )}
+
                 {aiGeneratedRecipes.length > 0 && (
-                  <Section 
-                    title="✨ Recently Generated by AI" 
+                  <Section
+                    title="✨ AI Generated Recipes"
                     recipes={aiGeneratedRecipes}
-                    onViewAll={() => handleViewAll("Italian")}
-                    onQuickView={setSelectedRecipe}
-                  />
-                )}
-                
-                {mostCookedRecipes.length > 0 && (
-                  <Section 
-                    title="👨‍🍳 Most Cooked This Week" 
-                    recipes={mostCookedRecipes}
-                    onViewAll={() => handleViewAll("Healthy")}
+                    onViewAll={() => {}}
                     onQuickView={setSelectedRecipe}
                   />
                 )}
@@ -585,31 +643,51 @@ const ExplorePage = () => {
             ) : (
               // Show filtered results
               <div className="mt-16">
-                <h2 className="text-2xl md:text-3xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
-                  {searchTerm ? `Search Results for "${searchTerm}"` : `${selectedCategory} Recipes`}
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {filteredRecipes.slice(0, displayCount).map((recipe, index) => (
-                    <RecipeCard 
-                      key={recipe.id} 
-                      recipe={recipe} 
-                      index={index}
-                      onQuickView={setSelectedRecipe}
-                    />
-                  ))}
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
+                    {searchTerm
+                      ? `Search Results for "${searchTerm}"`
+                      : `${selectedCategory} Recipes`}
+                  </h2>
+                  <span className="text-gray-600">
+                    {filteredRecipes.length} recipes found
+                  </span>
                 </div>
+
+                {filteredRecipes.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {filteredRecipes
+                      .slice(0, displayCount)
+                      .map((recipe, index) => (
+                        <RecipeCard
+                          key={recipe.id || recipe._id}
+                          recipe={recipe}
+                          index={index}
+                          onQuickView={setSelectedRecipe}
+                        />
+                      ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">
+                      No recipes found in this category.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Load More Button */}
             {filteredRecipes.length > displayCount && (
               <div className="flex justify-center mt-16">
-                <button 
+                <button
                   onClick={handleLoadMore}
                   className="group bg-black text-white px-8 py-4 rounded-full hover:bg-purple-600 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl flex items-center gap-3"
                 >
                   <span className="font-semibold">Load More Recipes</span>
-                  <span className="transform group-hover:translate-x-1 transition-transform">→</span>
+                  <span className="transform group-hover:translate-x-1 transition-transform">
+                    →
+                  </span>
                 </button>
               </div>
             )}
@@ -619,12 +697,11 @@ const ExplorePage = () => {
           <div className="text-center py-16 animate-fadeIn">
             <span className="text-6xl mb-4 block">😕</span>
             <h3 className="text-2xl font-bold mb-2">No Recipes Found</h3>
-            <p className="text-gray-600 mb-6">We couldn't find any recipes matching your criteria.</p>
-            <button 
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedCategory("All");
-              }}
+            <p className="text-gray-600 mb-6">
+              We couldn't find any recipes matching your criteria.
+            </p>
+            <button
+              onClick={clearFilters}
               className="bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition-colors"
             >
               Clear Filters
@@ -638,13 +715,12 @@ const ExplorePage = () => {
   );
 };
 
-// Styles remain the same as before
+// Styles
 const styles = `
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
   }
-
   @keyframes fadeInDown {
     from {
       opacity: 0;
@@ -655,7 +731,6 @@ const styles = `
       transform: translateY(0);
     }
   }
-
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -666,7 +741,6 @@ const styles = `
       transform: translateY(0);
     }
   }
-
   @keyframes slideUp {
     from {
       opacity: 0;
@@ -677,45 +751,37 @@ const styles = `
       transform: translateY(0);
     }
   }
-
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-20px); }
   }
-
   @keyframes float-delayed {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-15px); }
   }
-
   .animate-fadeIn {
     animation: fadeIn 0.5s ease-out forwards;
   }
-
   .animate-fadeInDown {
     animation: fadeInDown 0.6s ease-out forwards;
   }
-
   .animate-fadeInUp {
     animation: fadeInUp 0.6s ease-out forwards;
   }
-
   .animate-slideUp {
     animation: slideUp 0.5s ease-out forwards;
   }
-
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
-
   .animate-float-delayed {
     animation: float-delayed 3.5s ease-in-out infinite;
   }
 `;
 
 // Add styles to document
-if (typeof document !== 'undefined') {
-  const styleElement = document.createElement('style');
+if (typeof document !== "undefined") {
+  const styleElement = document.createElement("style");
   styleElement.textContent = styles;
   document.head.appendChild(styleElement);
 }

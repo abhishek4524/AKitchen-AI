@@ -1,6 +1,9 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const CTA = () => {
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
   return (
     <section className="w-full py-24 px-6 md:px-12 bg-[#fed348]">
 
@@ -23,13 +26,20 @@ const CTA = () => {
         {/* CTA Button */}
         <div className="flex justify-center md:justify-end">
 
-          <button
+         { !token ? (<button
+          onClick={() => navigate("/login")}
             className="px-8 py-4 bg-black text-white text-lg font-medium 
             rounded-xl hover:bg-gray-900 transition duration-300 
             shadow-lg hover:scale-105"
           >
             Get Started
-          </button>
+          </button>):(<button
+          onClick={() => navigate("/ai-recipe")}
+          className="mt-6 px-6 py-3 bg-black text-white rounded-full text-lg font-semibold 
+          hover:scale-105 hover:opacity-90 transition-all duration-300 shadow-lg"
+        >
+          Generate Recipe ⚡
+        </button>)}
 
         </div>
 

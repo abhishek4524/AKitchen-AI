@@ -1,0 +1,392 @@
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import { assets } from "../assets/assets";
+import axios from "axios";
+
+const RecipeDetails = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [recipe, setRecipe] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("ingredients");
+  const [servings, setServings] = useState(2);
+
+  useEffect(() => {
+    fetchRecipeDetails();
+  }, [id]);
+
+  const fetchRecipeDetails = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(`http://localhost:5000/api/recipes/${id}`);
+      const recipeData = response.data;
+
+      const transformedRecipe = {
+        id: recipeData._id,
+        title: recipeData.title,
+        img: recipeData.image || assets.paneer,
+        time: recipeData.time || "30 min",
+        rating: 4.5,
+        cuisine: recipeData.cuisine || "Other",
+        difficulty: recipeData.difficulty || "Medium",
+        ingredients: recipeData.ingredients || [],
+        description: recipeData.description || "",
+        steps: recipeData.steps || [],
+        diet: recipeData.diet || "Non-Veg",
+        createdBy: recipeData.createdBy,
+        aiGenerated: recipeData.aiGenerated || false,
+        createdAt: recipeData.createdAt,
+      };
+      setRecipe(transformedRecipe);
+    } catch (err) {
+      console.error("Error fetching recipe details:", err);
+      setError("Failed to load recipe details. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePrint = () => window.print();
+  const handleSave = () => alert("Recipe saved to your collection!");
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: recipe.title,
+        text: recipe.description,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Link copied to clipboard!");
+    }
+  };
+
+  const formatIngredient = (ing) => {
+    if (typeof ing === "string") return ing;
+    if (ing && typeof ing === "object") {
+      const quantity = ing.quantity || "";
+      const name = ing.name || "";
+      return `${quantity} ${name}`.trim();
+    }
+    return String(ing);
+  };
+
+  const scaleIngredient = (ingredientStr) => {
+    return ingredientStr.replace(/(\d+)(?:\s*\/\s*\d+)?/g, (match) => {
+      if (match.includes("/")) {
+        const [num, den] = match.split("/").map(Number);
+        return Math.round((num / den) * servings * 2) / 2;
+      }
+      return parseInt(match) * (servings / 2);
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="relative w-20 h-20 mx-auto mb-4">
+              <div className="absolute inset-0 border-4 border-purple-200 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-purple-600 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <p className="text-gray-600">Loading recipe details...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !recipe) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center max-w-md mx-auto p-6 bg-white rounded-2xl shadow-lg">
+            <span className="text-6xl mb-4 block">😕</span>
+            <h3 className="text-2xl font-bold mb-2">Recipe Not Found</h3>
+            <p className="text-gray-600 mb-6">{error || "The recipe you're looking for doesn't exist."}</p>
+            <button
+              onClick={() => navigate("/explore")}
+              className="bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition-colors shadow-md hover:shadow-lg"
+            >
+              Browse Recipes
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
+
+      {/* Hero Section */}
+      <div className="relative h-[50vh] md:h-[65vh] overflow-hidden">
+        <div className="absolute inset-0 bg-black/30 z-10"></div>
+        <img
+          src={recipe.img}
+          alt={recipe.title}
+          className="w-full h-full object-cover"
+          onError={(e) => (e.target.src = assets.paneer)}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10"></div>
+
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="absolute top-24 left-6 bg-white/90 backdrop-blur-sm p-3 rounded-full hover:bg-white transition-all z-20 shadow-md hover:shadow-lg"
+          aria-label="Go back"
+        >
+          ←
+        </button>
+
+        {/* Title and Metadata */}
+        <div className="absolute bottom-0 left-0 right-0 p-8 text-white z-20">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-wrap gap-2 mb-4">
+              <span className="bg-purple-600 px-3 py-1 rounded-full text-sm font-medium">
+                {recipe.cuisine}
+              </span>
+              {recipe.aiGenerated && (
+                <span className="bg-blue-600 px-3 py-1 rounded-full text-sm font-medium">
+                  AI Generated
+                </span>
+              )}
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  recipe.difficulty === "Easy"
+                    ? "bg-green-600"
+                    : recipe.difficulty === "Medium"
+                    ? "bg-yellow-600"
+                    : "bg-red-600"
+                }`}
+              >
+                {recipe.difficulty}
+              </span>
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight">
+              {recipe.title}
+            </h1>
+            <p className="text-lg text-gray-200 max-w-3xl">{recipe.description}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        {/* Quick Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+          <div className="bg-white rounded-xl p-5 text-center shadow-md hover:shadow-lg transition-shadow">
+            <div className="text-3xl mb-2">⏱️</div>
+            <p className="text-gray-600 text-sm">Prep Time</p>
+            <p className="font-bold text-lg">{recipe.time}</p>
+          </div>
+          <div className="bg-white rounded-xl p-5 text-center shadow-md hover:shadow-lg transition-shadow">
+            <div className="text-3xl mb-2">⭐</div>
+            <p className="text-gray-600 text-sm">Rating</p>
+            <p className="font-bold text-lg">{recipe.rating} / 5</p>
+          </div>
+          <div className="bg-white rounded-xl p-5 text-center shadow-md hover:shadow-lg transition-shadow">
+            <div className="text-3xl mb-2">👥</div>
+            <p className="text-gray-600 text-sm">Servings</p>
+            <div className="flex items-center justify-center gap-3 mt-1">
+              <button
+                onClick={() => setServings(Math.max(1, servings - 1))}
+                className="w-8 h-8 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors font-bold"
+                aria-label="Decrease servings"
+              >
+                -
+              </button>
+              <span className="font-bold text-lg w-8 text-center">{servings}</span>
+              <button
+                onClick={() => setServings(servings + 1)}
+                className="w-8 h-8 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors font-bold"
+                aria-label="Increase servings"
+              >
+                +
+              </button>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-5 text-center shadow-md hover:shadow-lg transition-shadow">
+            <div className="text-3xl mb-2">🔥</div>
+            <p className="text-gray-600 text-sm">Calories</p>
+            <p className="font-bold text-lg">~{Math.round(350 * (servings / 2))} kcal</p>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-4 mb-10">
+          <button
+            onClick={handleSave}
+            className="flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition-colors shadow-md hover:shadow-lg"
+          >
+            <span>❤️</span> Save Recipe
+          </button>
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 bg-gray-200 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-300 transition-colors"
+          >
+            <span>🖨️</span> Print
+          </button>
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-2 bg-gray-200 text-gray-700 px-6 py-3 rounded-full hover:bg-gray-300 transition-colors"
+          >
+            <span>📤</span> Share
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="border-b border-gray-200 mb-8">
+          <div className="flex gap-6">
+            <button
+              className={`pb-3 px-1 font-semibold transition-all relative ${
+                activeTab === "ingredients"
+                  ? "text-purple-600"
+                  : "text-gray-600 hover:text-purple-600"
+              }`}
+              onClick={() => setActiveTab("ingredients")}
+            >
+              Ingredients
+              {activeTab === "ingredients" && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full"></div>
+              )}
+            </button>
+            <button
+              className={`pb-3 px-1 font-semibold transition-all relative ${
+                activeTab === "instructions"
+                  ? "text-purple-600"
+                  : "text-gray-600 hover:text-purple-600"
+              }`}
+              onClick={() => setActiveTab("instructions")}
+            >
+              Instructions
+              {activeTab === "instructions" && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full"></div>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="bg-white rounded-2xl p-6 md:p-8 shadow-lg mb-12 transition-all">
+          {activeTab === "ingredients" ? (
+            <div>
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <span>🛒</span> Ingredients
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {recipe.ingredients.map((ingredient, index) => {
+                  const ingredientStr = formatIngredient(ingredient);
+                  const scaledIngredient = scaleIngredient(ingredientStr);
+                  return (
+                    <label
+                      key={index}
+                      className="flex items-start gap-3 p-3 border border-gray-100 rounded-xl hover:bg-purple-50 transition-colors cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        className="mt-1 w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                      />
+                      <span className="text-gray-700">{scaledIngredient}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div>
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <span>📖</span> Instructions
+              </h2>
+              <div className="space-y-8">
+                {recipe.steps && recipe.steps.length > 0 ? (
+                  recipe.steps.map((step, index) => (
+                    <div key={index} className="flex gap-5 group">
+                      <div className="flex-shrink-0 w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold text-lg">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 pt-1">
+                        <p className="text-gray-700 leading-relaxed">
+                          {typeof step === "string" ? step : step.text || JSON.stringify(step)}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No instructions available for this recipe.</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Chef's Tips */}
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-6 md:p-8 mb-12 border border-purple-100">
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <span>💡</span> Chef's Tips
+          </h2>
+          <ul className="space-y-3 text-gray-700">
+            <li className="flex items-start gap-3">
+              <span className="text-purple-600 mt-1">•</span>
+              <span>For best results, bring ingredients to room temperature before starting.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-purple-600 mt-1">•</span>
+              <span>Adjust spices according to your taste preference.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-purple-600 mt-1">•</span>
+              <span>Garnish with fresh herbs before serving for extra flavor.</span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Related Recipes */}
+        <div>
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            <span>🍽️</span> You Might Also Like
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((item) => (
+              <div
+                key={item}
+                className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer group"
+                onClick={() => navigate(`/recipe/${item}`)}
+              >
+                <div className="overflow-hidden h-48">
+                  <img
+                    src={assets.paneer}
+                    alt="Related recipe"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-bold mb-2 group-hover:text-purple-600 transition-colors">
+                    Sample Recipe {item}
+                  </h3>
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span>⏱️ 30 min</span>
+                    <span>⭐ 4.5</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default RecipeDetails;

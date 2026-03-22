@@ -9,6 +9,8 @@ import LoginPage from './pages/Login'
 import Signup from './pages/Signup'
 import MealPlanner from './pages/MealPlanner'
 import Dashboard from './pages/Dashboard'
+import Profile from './pages/Profile'
+import RecipeDetails from './pages/RecipeDetails'
 
 const App = () => {
   return (
@@ -23,6 +25,8 @@ const App = () => {
         <Route path='/signup' element={<Signup />} />
         <Route path='/meal-planner' element={<MealPlanner />} />
         <Route path='/dashboard' element={<Dashboard />} />
+        <Route path='profile' element={<Profile />} />
+        <Route path="/recipe/:id" element={<RecipeDetails />} />
       </Routes>
     </div>
   )

@@ -2,134 +2,331 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
-// Real food images from Unsplash (you can replace with your own images)
+const API_BASE_URL = "http://localhost:5000/api/grocery";
+
+// Default food images (fallback)
 const foodImages = {
-  vegetables: "https://images.unsplash.com/photo-1540420773420-3366772f4999?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  fruits: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  dairy: "https://images.unsplash.com/photo-1628088069254-d97f42a10e1e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  spices: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  grains: "https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  herbs: "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  grocery: "https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-  shopping: "https://images.unsplash.com/photo-1579113800032-c38bd7635818?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+  vegetables:
+    "https://images.unsplash.com/photo-1540420773420-3366772f4999?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+  fruits:
+    "https://images.unsplash.com/photo-1610832958506-aa56368176cf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+  dairy:
+    "https://images.unsplash.com/photo-1628088069254-d97f42a10e1e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+  spices:
+    "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+  grains:
+    "https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+  herbs:
+    "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+  grocery:
+    "https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+  shopping:
+    "https://images.unsplash.com/photo-1579113800032-c38bd7635818?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
 };
 
+// Predefined categories (you can also fetch from backend)
+const predefinedCategories = [
+  "Vegetables",
+  "Fruits",
+  "Dairy",
+  "Spices",
+  "Grains",
+  "Herbs",
+  "Nuts",
+  "Oils",
+  "Other",
+];
+
 const GroceryPage = () => {
-  const [item, setItem] = useState("");
+  // Input fields for new item
+  const [itemName, setItemName] = useState("");
+  const [itemCategory, setItemCategory] = useState("Other");
+  const [itemPrice, setItemPrice] = useState(20);
+
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("default"); // default, price-asc, price-desc, name
+  const [sortBy, setSortBy] = useState("default");
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successItem, setSuccessItem] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  
-  const [list, setList] = useState([
-    { id: 1, name: "Paneer (200g)", category: "Dairy", price: 120, done: true, image: foodImages.dairy },
-    { id: 2, name: "Tomatoes", category: "Vegetables", price: 40, done: true, image: foodImages.vegetables },
-    { id: 3, name: "Onions", category: "Vegetables", price: 30, done: true, image: foodImages.vegetables },
-    { id: 4, name: "Garlic", category: "Spices", price: 20, done: false, image: foodImages.spices },
-    { id: 5, name: "Garam Masala", category: "Spices", price: 80, done: false, image: foodImages.spices },
-    { id: 6, name: "Butter", category: "Dairy", price: 50, done: false, image: foodImages.dairy },
-    { id: 7, name: "Fresh Coriander", category: "Herbs", price: 15, done: false, image: foodImages.herbs },
-    { id: 8, name: "Basmati Rice", category: "Grains", price: 70, done: false, image: foodImages.grains },
-    { id: 9, name: "Cream", category: "Dairy", price: 90, done: false, image: foodImages.dairy },
-    { id: 10, name: "Bell Peppers", category: "Vegetables", price: 45, done: false, image: foodImages.vegetables },
-  ]);
 
-  // Get unique categories
-  const categories = ["all", ...new Set(list.map(item => item.category))];
+  // API state
+  const [list, setList] = useState([]);
+  const [suggestedItems, setSuggestedItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
-  // Filter, search, and sort logic
-  const filteredList = list
-    .filter(item => {
-      if (filter === "bought" && !item.done) return false;
-      if (filter === "pending" && item.done) return false;
-      if (selectedCategory !== "all" && item.category !== selectedCategory) return false;
-      if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-      return true;
-    })
-    .sort((a, b) => {
-      switch(sortBy) {
-        case "price-asc": return a.price - b.price;
-        case "price-desc": return b.price - a.price;
-        case "name": return a.name.localeCompare(b.name);
-        default: return 0;
-      }
-    });
+  // Fetch items based on filters
+  const fetchItems = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (filter !== "all") params.append("filter", filter);
+      if (searchTerm) params.append("search", searchTerm);
+      if (selectedCategory !== "all")
+        params.append("category", selectedCategory);
+      if (sortBy !== "default") params.append("sort", sortBy);
 
-  const addItem = () => {
-    if (!item.trim()) return;
-
-    const newItem = {
-      id: Date.now(),
-      name: item,
-      category: "Other",
-      price: 20,
-      done: false,
-      image: foodImages.grocery
-    };
-
-    setList([...list, newItem]);
-    setSuccessItem(item);
-    setItem("");
-    setShowSuccessMessage(true);
-    setTimeout(() => setShowSuccessMessage(false), 2000);
-  };
-
-  const toggleItem = (id) => {
-    setList(list.map(g => g.id === id ? { ...g, done: !g.done } : g));
-  };
-
-  const deleteItem = (id) => {
-    setList(list.filter(g => g.id !== id));
-  };
-
-  const clearList = () => {
-    if (window.confirm("Are you sure you want to clear all items?")) {
-      setList([]);
+      const response = await fetch(
+        `${API_BASE_URL}/items?${params.toString()}`,
+      );
+      if (!response.ok) throw new Error("Failed to fetch items");
+      const data = await response.json();
+      setList(data);
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const addSuggestedItem = (item) => {
-    const newItem = {
-      id: Date.now(),
-      name: item.name,
-      category: item.category,
-      price: item.price,
-      done: false,
-      image: item.image
-    };
-    setList([...list, newItem]);
-    setSuccessItem(item.name);
-    setShowSuccessMessage(true);
-    setTimeout(() => setShowSuccessMessage(false), 2000);
+  // Fetch suggestions from backend
+  const fetchSuggestions = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/suggestions`);
+      if (!response.ok) throw new Error("Failed to fetch suggestions");
+      const data = await response.json();
+      setSuggestedItems(data);
+    } catch (err) {
+      console.error(err);
+      setSuggestedItems([]);
+    }
   };
 
+  // Load items and suggestions on mount and when filters change
+  useEffect(() => {
+    fetchItems();
+  }, [filter, searchTerm, selectedCategory, sortBy]);
+
+  useEffect(() => {
+    fetchSuggestions();
+  }, []);
+
+  // Derived categories from fetched items (for filter dropdown)
+  const categoriesFromItems = [
+    "all",
+    ...new Set(list.map((item) => item.category)),
+  ];
+  // Combine with predefined categories for the add form
+  const allCategories = [
+    ...new Set([...predefinedCategories, ...list.map((item) => item.category)]),
+  ];
+
+  // Add new item
+  const addItem = async () => {
+    if (!itemName.trim()) return;
+
+    const newItem = {
+      name: itemName,
+      category: itemCategory,
+      price: itemPrice,
+      // no image field – backend will fetch from Unsplash
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/items`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newItem),
+      });
+      if (!response.ok) throw new Error("Failed to add item");
+      const added = await response.json();
+      setSuccessItem(added.name);
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 2000);
+      setItemName("");
+      setItemCategory("Other");
+      setItemPrice(20);
+      fetchItems(); // refresh list
+    } catch (err) {
+      console.error(err);
+      alert("Error adding item: " + err.message);
+    }
+  };
+
+  // Toggle done status
+  const toggleItem = async (id, currentDone) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/items/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ done: !currentDone }),
+      });
+      if (!response.ok) throw new Error("Failed to update item");
+      fetchItems();
+    } catch (err) {
+      console.error(err);
+      alert("Error updating item: " + err.message);
+    }
+  };
+
+  // Delete single item
+  const deleteItem = async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/items/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete item");
+      fetchItems();
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting item: " + err.message);
+    }
+  };
+
+  // Clear all items
+  const clearList = async () => {
+    if (!window.confirm("Are you sure you want to clear all items?")) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/items`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to clear items");
+      fetchItems();
+    } catch (err) {
+      console.error(err);
+      alert("Error clearing items: " + err.message);
+    }
+  };
+
+  // Add suggested item from backend
+  const addSuggestedItem = async (suggestedItem) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/items`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: suggestedItem.name,
+          category: suggestedItem.category,
+          price: suggestedItem.price,
+          // image is already present in suggestedItem, but we send it; backend will use it if provided
+          image: suggestedItem.image,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to add suggested item");
+      const added = await response.json();
+      setSuccessItem(added.name);
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 2000);
+      fetchItems();
+    } catch (err) {
+      console.error(err);
+      alert("Error adding item: " + err.message);
+    }
+  };
+
+  // Stats
   const totalItems = list.length;
-  const bought = list.filter(i => i.done).length;
+  const bought = list.filter((i) => i.done).length;
   const pending = totalItems - bought;
-  const totalCost = list.reduce((a, b) => a + b.price, 0);
+  const totalCost = list.reduce((sum, item) => sum + item.price, 0);
 
   const statsCards = [
-    { label: "Total Items", value: totalItems, icon: "🛒", color: "from-blue-500 to-blue-600", bg: "bg-blue-50" },
-    { label: "Bought", value: bought, icon: "✅", color: "from-green-500 to-green-600", bg: "bg-green-50" },
-    { label: "Pending", value: pending, icon: "⏳", color: "from-orange-500 to-orange-600", bg: "bg-orange-50" },
-    { label: "Total Cost", value: `₹${totalCost}`, icon: "💰", color: "from-purple-500 to-purple-600", bg: "bg-purple-50" },
+    {
+      label: "Total Items",
+      value: totalItems,
+      icon: "🛒",
+      color: "from-blue-500 to-blue-600",
+      bg: "bg-blue-50",
+    },
+    {
+      label: "Bought",
+      value: bought,
+      icon: "✅",
+      color: "from-green-500 to-green-600",
+      bg: "bg-green-50",
+    },
+    {
+      label: "Pending",
+      value: pending,
+      icon: "⏳",
+      color: "from-orange-500 to-orange-600",
+      bg: "bg-orange-50",
+    },
+    {
+      label: "Total Cost",
+      value: `₹${totalCost}`,
+      icon: "💰",
+      color: "from-purple-500 to-purple-600",
+      bg: "bg-purple-50",
+    },
   ];
 
-  const suggestedItems = [
-    { name: "Chili Powder", category: "Spices", price: 35, image: foodImages.spices, emoji: "🌶️" },
-    { name: "Turmeric Powder", category: "Spices", price: 25, image: foodImages.spices, emoji: "🧡" },
-    { name: "Cashew Nuts", category: "Nuts", price: 120, image: "https://images.unsplash.com/photo-1597668905110-2b4a3f3c7f1e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", emoji: "🥜" },
-    { name: "Green Peas", category: "Vegetables", price: 40, image: foodImages.vegetables, emoji: "🟢" },
-    { name: "Olive Oil", category: "Oils", price: 180, image: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", emoji: "🫒" },
-    { name: "Fresh Mint", category: "Herbs", price: 15, image: foodImages.herbs, emoji: "🌿" },
-    { name: "Greek Yogurt", category: "Dairy", price: 80, image: foodImages.dairy, emoji: "🥛" },
-    { name: "Quinoa", category: "Grains", price: 150, image: foodImages.grains, emoji: "🌾" },
-    { name: "Avocado", category: "Fruits", price: 60, image: foodImages.fruits, emoji: "🥑" },
-    { name: "Honey", category: "Other", price: 120, image: "https://images.unsplash.com/photo-1587049352851-8d4e8915a7c1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", emoji: "🍯" },
-  ];
+  // Helper to get emoji for suggestion items (if missing)
+  const getEmoji = (category) => {
+    const emojis = {
+      Spices: "🌶️",
+      Dairy: "🥛",
+      Vegetables: "🥕",
+      Fruits: "🍎",
+      Grains: "🌾",
+      Herbs: "🌿",
+      Nuts: "🥜",
+      Oils: "🫒",
+      Other: "🛒",
+    };
+    return emojis[category] || "🛒";
+  };
+
+  if (!token) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#f6a7a8] to-[#ffd6d9]">
+        <Navbar />
+
+        <div className="flex flex-col items-center justify-center min-h-screen text-center px-4">
+          {/* 🔥 Heading */}
+          <h1 className="text-4xl md:text-6xl font-bold mb-4">
+            Smart Grocery with AI 🛒
+          </h1>
+
+          {/* 💡 Subtext */}
+          <p className="text-gray-700 max-w-xl mb-8">
+            Generate your grocery list automatically from recipes. No manual
+            effort — AI does everything for you.
+          </p>
+
+          {/* 🧪 Demo Box */}
+          <div className="bg-white shadow-xl rounded-2xl p-6 w-full max-w-md">
+            <p className="text-gray-500 mb-4 text-sm">
+              Example: Paneer Butter Masala
+            </p>
+
+            {/* 🔥 Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate("/ai-recipe")}
+                className="bg-black text-white px-6 py-3 rounded-lg"
+              >
+                🍳 Generate Recipe First
+              </button>
+
+              <button
+                onClick={() => navigate("/login")}
+                className="flex-1 border border-gray-300 py-3 rounded-lg font-semibold hover:bg-gray-100"
+              >
+                🔐 Login
+              </button>
+            </div>
+          </div>
+
+          {/* ⚡ Features */}
+          <div className="flex gap-4 mt-6 text-gray-600 text-sm">
+            <span>🧠 AI powered</span>
+            <span>⚡ Instant list</span>
+            <span>🛒 Smart tracking</span>
+          </div>
+        </div>
+
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
@@ -140,58 +337,47 @@ const GroceryPage = () => {
         {/* Background Images with Parallax Effect */}
         <div className="absolute inset-0 opacity-15">
           <motion.div
-            animate={{ 
-              x: [0, 20, 0],
-              y: [0, -20, 0]
-            }}
-            transition={{ 
+            animate={{ x: [0, 20, 0], y: [0, -20, 0] }}
+            transition={{
               duration: 20,
               repeat: Infinity,
-              repeatType: "reverse"
+              repeatType: "reverse",
             }}
             className="absolute left-0 top-10 w-96 h-96"
           >
-            <img 
+            <img
               src={foodImages.vegetables}
-              alt="Fresh vegetables" 
+              alt="Fresh vegetables"
               className="w-full h-full object-cover rounded-full opacity-30"
             />
           </motion.div>
-          
           <motion.div
-            animate={{ 
-              x: [0, -20, 0],
-              y: [0, 20, 0]
-            }}
-            transition={{ 
+            animate={{ x: [0, -20, 0], y: [0, 20, 0] }}
+            transition={{
               duration: 25,
               repeat: Infinity,
-              repeatType: "reverse"
+              repeatType: "reverse",
             }}
             className="absolute right-0 bottom-10 w-96 h-96"
           >
-            <img 
+            <img
               src={foodImages.fruits}
-              alt="Fresh fruits" 
+              alt="Fresh fruits"
               className="w-full h-full object-cover rounded-full opacity-30"
             />
           </motion.div>
-
           <motion.div
-            animate={{ 
-              scale: [1, 1.1, 1],
-              rotate: [0, 5, 0]
-            }}
-            transition={{ 
+            animate={{ scale: [1, 1.1, 1], rotate: [0, 5, 0] }}
+            transition={{
               duration: 30,
               repeat: Infinity,
-              repeatType: "reverse"
+              repeatType: "reverse",
             }}
             className="absolute left-1/4 top-1/4 w-64 h-64"
           >
-            <img 
+            <img
               src={foodImages.spices}
-              alt="Spices" 
+              alt="Spices"
               className="w-full h-full object-cover rounded-full opacity-20"
             />
           </motion.div>
@@ -207,18 +393,15 @@ const GroceryPage = () => {
             <motion.div
               key={i}
               className="absolute w-2 h-2 bg-white rounded-full"
-              initial={{ 
+              initial={{
                 x: Math.random() * window.innerWidth,
-                y: Math.random() * window.innerHeight 
+                y: Math.random() * window.innerHeight,
               }}
-              animate={{ 
-                y: [null, -30, 0],
-                opacity: [0, 1, 0]
-              }}
-              transition={{ 
+              animate={{ y: [null, -30, 0], opacity: [0, 1, 0] }}
+              transition={{
                 duration: 3 + Math.random() * 2,
                 repeat: Infinity,
-                delay: Math.random() * 2
+                delay: Math.random() * 2,
               }}
             />
           ))}
@@ -242,7 +425,6 @@ const GroceryPage = () => {
                 🛒 Fresh & Smart Shopping
               </span>
             </motion.div>
-            
             <h1 className="text-5xl md:text-7xl font-bold text-white drop-shadow-lg mb-4">
               Smart Grocery List
             </h1>
@@ -251,50 +433,110 @@ const GroceryPage = () => {
             </p>
           </motion.div>
 
-          {/* INPUT SECTION */}
-          <motion.div 
+          {/* INPUT SECTION - Enhanced with clear labels and icons */}
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
             className="mt-12"
           >
-            <div className="max-w-2xl mx-auto">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <input
-                    value={item}
-                    onChange={(e) => setItem(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addItem()}
-                    placeholder="Add grocery item... (e.g., Tomatoes, Paneer)"
-                    className="w-full px-6 py-4 rounded-xl shadow-lg focus:ring-4 focus:ring-green-200 outline-none transition-all bg-white/90 backdrop-blur-sm"
-                  />
-                  <AnimatePresence>
-                    {showSuccessMessage && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute -bottom-10 left-0 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
-                      >
-                        <span>✓</span> {successItem} added successfully!
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+            <div className="max-w-3xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Item Name Field */}
+                <div className="relative">
+                  <label className="block text-white text-sm font-medium mb-2 ml-1">
+                    🛒 Item Name
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      🛒
+                    </span>
+                    <input
+                      value={itemName}
+                      onChange={(e) => setItemName(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && addItem()}
+                      placeholder="e.g., Tomatoes, Paneer"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl shadow-lg focus:ring-4 focus:ring-green-200 outline-none transition-all bg-white/90 backdrop-blur-sm"
+                    />
+                  </div>
                 </div>
+
+                {/* Category Field */}
+                <div>
+                  <label className="block text-white text-sm font-medium mb-2 ml-1">
+                    🏷️ Category (Type)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      🏷️
+                    </span>
+                    <select
+                      value={itemCategory}
+                      onChange={(e) => setItemCategory(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl shadow-lg focus:ring-4 focus:ring-green-200 outline-none transition-all bg-white/90 backdrop-blur-sm appearance-none"
+                    >
+                      {allCategories.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Price Field */}
+                <div>
+                  <label className="block text-white text-sm font-medium mb-2 ml-1">
+                    💰 Price (₹)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      ₹
+                    </span>
+                    <input
+                      type="number"
+                      value={itemPrice}
+                      onChange={(e) => setItemPrice(Number(e.target.value))}
+                      placeholder="e.g., 20"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl shadow-lg focus:ring-4 focus:ring-green-200 outline-none transition-all bg-white/90 backdrop-blur-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Add Button */}
+              <div className="mt-6 flex justify-center">
                 <motion.button
-                  whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.2)" }}
+                  whileHover={{
+                    scale: 1.05,
+                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.2)",
+                  }}
                   whileTap={{ scale: 0.95 }}
                   onClick={addItem}
-                  className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white px-8 py-4 rounded-xl shadow-lg font-semibold transition-all flex items-center justify-center gap-2"
+                  className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white px-8 py-3 rounded-xl shadow-lg font-semibold transition-all flex items-center justify-center gap-2"
                 >
                   <span>+</span> Add Item
                 </motion.button>
               </div>
+
+              {/* Success Message */}
+              <AnimatePresence>
+                {showSuccessMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="mt-4 text-center bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg inline-block w-full"
+                  >
+                    ✓ {successItem} added successfully!
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
 
           {/* STATS CARDS */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
@@ -312,7 +554,9 @@ const GroceryPage = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="text-gray-600 text-sm mb-1">{stat.label}</p>
-                    <p className={`text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+                    <p
+                      className={`text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}
+                    >
                       {stat.value}
                     </p>
                   </div>
@@ -326,7 +570,7 @@ const GroceryPage = () => {
 
       {/* MAIN GROCERY LIST SECTION */}
       <section className="max-w-6xl mx-auto px-4 -mt-8">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.7 }}
@@ -345,9 +589,11 @@ const GroceryPage = () => {
                   📝
                 </motion.span>
               </h2>
-              <p className="text-gray-500 mt-1">{filteredList.length} items showing</p>
+              <p className="text-gray-500 mt-1">
+                {loading ? "Loading..." : `${list.length} items showing`}
+              </p>
             </div>
-            
+
             <div className="flex flex-wrap gap-3 w-full lg:w-auto">
               {/* Search */}
               <div className="relative flex-1 lg:flex-none">
@@ -358,7 +604,9 @@ const GroceryPage = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full lg:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#f6a7a8] outline-none bg-white/50"
                 />
-                <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                <span className="absolute left-3 top-2.5 text-gray-400">
+                  🔍
+                </span>
               </div>
 
               {/* Sort dropdown */}
@@ -379,7 +627,7 @@ const GroceryPage = () => {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="px-4 py-2 border border-gray-200 rounded-xl bg-white/50 focus:ring-2 focus:ring-[#f6a7a8] outline-none"
               >
-                {categories.map(cat => (
+                {categoriesFromItems.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat.charAt(0).toUpperCase() + cat.slice(1)}
                   </option>
@@ -418,73 +666,112 @@ const GroceryPage = () => {
 
           {/* Grocery items list */}
           <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-            <AnimatePresence>
-              {filteredList.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center py-16"
-                >
-                  <div className="text-6xl mb-4">🛒</div>
-                  <p className="text-gray-500 text-lg">No items found. Add some groceries!</p>
-                  <button 
-                    onClick={() => setList([
-                      { id: 1, name: "Paneer (200g)", category: "Dairy", price: 120, done: false, image: foodImages.dairy },
-                      { id: 2, name: "Tomatoes", category: "Vegetables", price: 40, done: false, image: foodImages.vegetables },
-                    ])}
-                    className="mt-4 text-[#f6a7a8] hover:text-[#f6a7a8] font-medium"
-                  >
-                    Load sample items
-                  </button>
-                </motion.div>
-              ) : (
-                filteredList.map((g, index) => (
+            {loading ? (
+              <div className="text-center py-16">Loading...</div>
+            ) : error ? (
+              <div className="text-center py-16 text-red-500">
+                Error: {error}
+              </div>
+            ) : (
+              <AnimatePresence>
+                {list.length === 0 ? (
                   <motion.div
-                    key={g.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ delay: index * 0.03 }}
-                    whileHover={{ scale: 1.01, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)" }}
-                    className="flex items-center justify-between bg-white p-4 rounded-xl hover:shadow-lg transition-all border border-gray-100"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-center py-16"
                   >
-                    <div className="flex items-center gap-4 flex-1">
-                      <motion.img
-                        whileHover={{ scale: 1.1 }}
-                        src={g.image}
-                        alt={g.name}
-                        className="w-12 h-12 rounded-lg object-cover"
-                      />
-                      <motion.input
-                        whileTap={{ scale: 1.2 }}
-                        type="checkbox"
-                        checked={g.done}
-                        onChange={() => toggleItem(g.id)}
-                        className="w-5 h-5 accent-green-500 cursor-pointer"
-                      />
-                      <div className="flex-1">
-                        <span className={`font-medium block ${g.done ? "line-through text-gray-400" : "text-gray-800"}`}>
-                          {g.name}
-                        </span>
-                        <span className="text-xs text-gray-500">{g.category}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-6">
-                      <p className="font-semibold text-gray-800">₹{g.price}</p>
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => deleteItem(g.id)}
-                        className="text-gray-400 hover:text-red-500 transition-colors text-xl"
-                      >
-                        🗑
-                      </motion.button>
-                    </div>
+                    <div className="text-6xl mb-4">🛒</div>
+                    <p className="text-gray-500 text-lg">
+                      No items found. Add some groceries!
+                    </p>
+                    <button
+                      onClick={async () => {
+                        const sampleItems = [
+                          {
+                            name: "Paneer (200g)",
+                            category: "Dairy",
+                            price: 120,
+                            image: foodImages.dairy,
+                          },
+                          {
+                            name: "Tomatoes",
+                            category: "Vegetables",
+                            price: 40,
+                            image: foodImages.vegetables,
+                          },
+                        ];
+                        for (let item of sampleItems) {
+                          await fetch(`${API_BASE_URL}/items`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(item),
+                          });
+                        }
+                        fetchItems();
+                      }}
+                      className="mt-4 text-[#f6a7a8] hover:text-[#f6a7a8] font-medium"
+                    >
+                      Load sample items
+                    </button>
                   </motion.div>
-                ))
-              )}
-            </AnimatePresence>
+                ) : (
+                  list.map((g, index) => (
+                    <motion.div
+                      key={g._id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ delay: index * 0.03 }}
+                      whileHover={{
+                        scale: 1.01,
+                        boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
+                      }}
+                      className="flex items-center justify-between bg-white p-4 rounded-xl hover:shadow-lg transition-all border border-gray-100"
+                    >
+                      <div className="flex items-center gap-4 flex-1">
+                        <motion.img
+                          whileHover={{ scale: 1.1 }}
+                          src={g.image}
+                          alt={g.name}
+                          className="w-12 h-12 rounded-lg object-cover"
+                        />
+                        <motion.input
+                          whileTap={{ scale: 1.2 }}
+                          type="checkbox"
+                          checked={g.done}
+                          onChange={() => toggleItem(g._id, g.done)}
+                          className="w-5 h-5 accent-green-500 cursor-pointer"
+                        />
+                        <div className="flex-1">
+                          <span
+                            className={`font-medium block ${g.done ? "line-through text-gray-400" : "text-gray-800"}`}
+                          >
+                            {g.name}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {g.category}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-6">
+                        <p className="font-semibold text-gray-800">
+                          ₹{g.price}
+                        </p>
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => deleteItem(g._id)}
+                          className="text-gray-400 hover:text-red-500 transition-colors text-xl"
+                        >
+                          🗑
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </AnimatePresence>
+            )}
           </div>
 
           {/* Progress bar */}
@@ -492,7 +779,9 @@ const GroceryPage = () => {
             <div className="mt-6 pt-4 border-t border-gray-200">
               <div className="flex justify-between text-sm text-gray-600 mb-2">
                 <span>Progress</span>
-                <span>{Math.round((bought / totalItems) * 100)}% completed</span>
+                <span>
+                  {Math.round((bought / totalItems) * 100)}% completed
+                </span>
               </div>
               <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                 <motion.div
@@ -517,69 +806,82 @@ const GroceryPage = () => {
           <h3 className="text-3xl font-bold text-gray-800 mb-3">
             Suggested for You
           </h3>
-          <p className="text-gray-600">Based on your recent recipes and popular items</p>
+          <p className="text-gray-600">
+            Based on popular items and your shopping habits
+          </p>
         </motion.div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {suggestedItems.map((item, index) => (
-            <motion.div
-              key={item.name}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.05 }}
-              whileHover={{ y: -10 }}
-              className="bg-white rounded-2xl shadow-lg overflow-hidden group cursor-pointer"
-              onClick={() => addSuggestedItem(item)}
-            >
-              <div className="relative h-40 overflow-hidden">
-                <motion.img
-                  whileHover={{ scale: 1.1 }}
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <motion.div
-                  initial={{ scale: 0 }}
-                  whileHover={{ scale: 1 }}
-                  className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-lg"
-                >
-                  <span className="text-xl">{item.emoji}</span>
-                </motion.div>
-              </div>
-              <div className="p-4">
-                <p className="font-semibold text-gray-800 mb-1">{item.name}</p>
-                <p className="text-sm text-gray-500 mb-2">{item.category}</p>
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-[#f6a7a8]">₹{item.price}</span>
-                  <motion.button
+          {suggestedItems.length === 0 ? (
+            <div className="col-span-full text-center text-gray-500">
+              No suggestions yet. Add some items to get personalized
+              suggestions!
+            </div>
+          ) : (
+            suggestedItems.map((item, index) => (
+              <motion.div
+                key={item.name}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.05 }}
+                whileHover={{ y: -10 }}
+                className="bg-white rounded-2xl shadow-lg overflow-hidden group cursor-pointer"
+                onClick={() => addSuggestedItem(item)}
+              >
+                <div className="relative h-40 overflow-hidden">
+                  <motion.img
                     whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="bg-gray-100 hover:bg-[#f6a7a8] hover:text-white p-2 rounded-lg transition-all text-sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      addSuggestedItem(item);
-                    }}
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    whileHover={{ scale: 1 }}
+                    className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-lg"
                   >
-                    + Add
-                  </motion.button>
+                    <span className="text-xl">{getEmoji(item.category)}</span>
+                  </motion.div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+                <div className="p-4">
+                  <p className="font-semibold text-gray-800 mb-1">
+                    {item.name}
+                  </p>
+                  <p className="text-sm text-gray-500 mb-2">{item.category}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-[#f6a7a8]">
+                      ₹{item.price}
+                    </span>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="bg-gray-100 hover:bg-[#f6a7a8] hover:text-white p-2 rounded-lg transition-all text-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addSuggestedItem(item);
+                      }}
+                    >
+                      + Add
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
         </div>
       </section>
 
       {/* CTA SECTION */}
-      <motion.section 
+      <motion.section
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
         className="relative mt-20 overflow-hidden"
       >
         <div className="absolute inset-0">
-          <img 
+          <img
             src={foodImages.shopping}
             alt="Shopping background"
             className="w-full h-full object-cover"
@@ -590,14 +892,14 @@ const GroceryPage = () => {
         <div className="relative z-10 max-w-6xl mx-auto px-4 py-16">
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
             <div className="text-center md:text-left">
-              <motion.h3 
+              <motion.h3
                 initial={{ x: -30 }}
                 whileInView={{ x: 0 }}
                 className="text-3xl font-bold text-gray-900 mb-3"
               >
                 Plan Your Meals & Auto-Add Ingredients
               </motion.h3>
-              <motion.p 
+              <motion.p
                 initial={{ x: -30 }}
                 whileInView={{ x: 0 }}
                 transition={{ delay: 0.1 }}
@@ -607,7 +909,10 @@ const GroceryPage = () => {
               </motion.p>
             </div>
             <motion.button
-              whileHover={{ scale: 1.05, boxShadow: "0 20px 25px -5px rgba(0,0,0,0.2)" }}
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 20px 25px -5px rgba(0,0,0,0.2)",
+              }}
               whileTap={{ scale: 0.95 }}
               className="bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black text-white px-10 py-4 rounded-xl font-semibold transition-all shadow-xl flex items-center gap-2 text-lg"
             >

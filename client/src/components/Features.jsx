@@ -1,6 +1,7 @@
 import React from "react";
 import { Brain, ShoppingCart, CalendarDays, Search } from "lucide-react";
 
+
 const features = [
   {
     icon: Brain,
