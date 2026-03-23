@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import PopularCategories from '../components/PopularCategories'
 import TrendingCategories from '../components/TrendingCategories'
+import ReviewSection from "../components/ReviewSection";
 import Features from '../components/Features'
 import Works from '../components/Works'
 import CTA from '../components/CTA'
@@ -19,6 +20,7 @@ const Landing = () => {
         <TrendingCategories />
         <Features />
         <Works />
+        <ReviewSection/>
         <CTA />
         <Footer />
     </div>

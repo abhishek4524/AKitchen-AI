@@ -10,7 +10,7 @@ const foodImages = {
 
 function Login() {
   const googleLogin = () => {
-    window.open("http://localhost:5000/auth/google", "_self");
+    window.open(import.meta.env.VITE_AUTH_GOOGLE_URL || "http://localhost:5000/auth/google", "_self");
   };
 
   return (

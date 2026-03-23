@@ -56,6 +56,9 @@ const Profile = () => {
     notifications: true,
   });
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
+
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -67,36 +70,48 @@ const Profile = () => {
     fetchUserData();
   }, [token]);
 
-  const fetchUserData = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get("http://localhost:5000/api/user/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log("User data fetched:", res.data);
-      setUser(res.data);
-      setEditedName(res.data.name || "");
-      if (res.data.settings) {
-        setLocalSettings(res.data.settings);
-      }
-    } catch (err) {
-      console.error("Error fetching user:", err);
-      setError("Failed to load user data. Please try again.");
-      if (err.response?.status === 401) {
-        localStorage.removeItem("token");
-        navigate("/login");
-      }
-    } finally {
-      setLoading(false);
+const fetchUserData = async () => {
+  try {
+    setLoading(true);
+    // Get user profile
+    const userRes = await axios.get(`${API_BASE}/user/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const userData = userRes.data;
+
+    // Get grocery item count
+    const groceryRes = await axios.get(`${API_BASE}/grocery/items/count`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const groceryCount = groceryRes.data.count;
+
+    setUser({
+      ...userData,
+      savedCount: userData.savedRecipes?.length || 0,
+      recipesCount: userData.recipesCount || (userData.createdRecipes?.length || 0),
+      aiRecipesCount: userData.aiRecipesCount || 0,
+      groceryListsCount: groceryCount,
+    });
+    setEditedName(userData.name || "");
+    if (userData.settings) setLocalSettings(userData.settings);
+  } catch (err) {
+    console.error("Error fetching user:", err);
+    setError("Failed to load user data. Please try again.");
+    if (err.response?.status === 401) {
+      localStorage.removeItem("token");
+      navigate("/login");
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleUpdateProfile = async () => {
     if (!editedName.trim()) return;
     try {
       setUpdating(true);
       await axios.put(
-        "http://localhost:5000/api/user/update",
+        `${API_BASE}/user/update`,
         { name: editedName },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -140,9 +155,9 @@ const Profile = () => {
 
   // Stats data (can be replaced with real data from API)
   const stats = [
-    { icon: BookOpen, label: "Recipes Created", value: user?.recipesCount || 0, color: "from-purple-500 to-purple-600", bg: "from-purple-50 to-purple-100" },
-    { icon: Heart, label: "Saved Recipes", value: user?.savedCount || 0, color: "from-pink-500 to-pink-600", bg: "from-pink-50 to-pink-100" },
-    { icon: ShoppingBag, label: "Grocery Lists", value: user?.groceryListsCount || 0, color: "from-green-500 to-green-600", bg: "from-green-50 to-green-100" },
+    { icon: BookOpen, label: "Recipes Created", value: user?.recipesCount || 0, color: "from-purple-500 to-purple-600", bg: "from-purple-50 to-purple-100", route: "/created-recipe" },
+    { icon: Heart, label: "Saved Recipes", value: user?.savedCount || 0, color: "from-pink-500 to-pink-600", bg: "from-pink-50 to-pink-100", route: "/saved-recipe" },
+    { icon: ShoppingBag, label: "Grocery Lists", value: user?.groceryListsCount || 0, color: "from-green-500 to-green-600", bg: "from-green-50 to-green-100", route: "/grocery" },
   ];
 
   const handleThemeToggle = () => {
@@ -166,6 +181,10 @@ const Profile = () => {
 
   const handleGenerateRecipe = () => {
     navigate("/generate"); // Adjust route as needed
+  };
+
+  const handleStatClick = (route) => {
+    navigate(route);
   };
 
   if (loading) {
@@ -388,7 +407,8 @@ const Profile = () => {
                     key={idx}
                     variants={fadeInUp}
                     whileHover={{ y: -5, scale: 1.02 }}
-                    className="group relative overflow-hidden bg-white/60 backdrop-blur-sm rounded-2xl p-5 border border-white/40 shadow-md hover:shadow-xl transition-all duration-300"
+                    onClick={() => handleStatClick(stat.route)}
+                    className="group relative overflow-hidden bg-white/60 backdrop-blur-sm rounded-2xl p-5 border border-white/40 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer"
                   >
                     <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none" />
                     <div className="flex items-center gap-4">
@@ -403,6 +423,38 @@ const Profile = () => {
                   </motion.div>
                 ))}
               </motion.div>
+            </div>
+          </motion.div>
+
+          {/* AI Created Recipes Section */}
+          <motion.div
+            variants={fadeInUp}
+            className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/40"
+          >
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <Zap size={20} className="text-purple-500" />
+              AI Generated Recipes
+            </h2>
+
+            {user?.createdRecipes?.filter((r) => r.aiGenerated).length ? (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {user.createdRecipes
+                  .filter((r) => r.aiGenerated)
+                  .slice(0, 6)
+                  .map((recipe) => (
+                    <div key={recipe._id} className="bg-purple-50 rounded-xl p-3 border border-purple-100">
+                      <h3 className="font-semibold text-gray-800">{recipe.title}</h3>
+                      <p className="text-xs text-gray-500">{new Date(recipe.createdAt).toLocaleDateString()}</p>
+                      <p className="text-sm text-gray-700 truncate mt-1">{recipe.description || "No description"}</p>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">No AI recipes generated yet.</p>
+            )}
+
+            <div className="mt-3 text-sm text-gray-500">
+              Total AI recipes: {user?.aiRecipesCount || 0}
             </div>
           </motion.div>
 
@@ -518,7 +570,7 @@ const Profile = () => {
           </div>
 
           {/* Recent Activity with Premium Empty State */}
-          <motion.div
+          {/* <motion.div
             variants={fadeInUp}
             className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden border border-white/40"
           >
@@ -565,7 +617,7 @@ const Profile = () => {
                 </div>
               </motion.div>
             </div>
-          </motion.div>
+          </motion.div> */}
         </motion.div>
       </div>
       <Footer />

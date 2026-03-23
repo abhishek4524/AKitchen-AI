@@ -15,14 +15,21 @@ exports.generateRecipe = async (req, res) => {
     // 🖼️ Fetch image
     const image = await getRecipeImage(aiRecipe.imageQuery || aiRecipe.title);
 
-    // Save in DB
+    // Save in DB (track creator)
     const recipe = await Recipe.create({
       ...aiRecipe,
       cuisine,
       diet,
       image,
       aiGenerated: true,
+      createdBy: req.user._id,
     });
+
+    // Optionally append to user created recipes history (if schema has createdRecipes)
+    if (req.user && req.user.createdRecipes) {
+      req.user.createdRecipes.push(recipe._id);
+      await req.user.save();
+    }
 
     res.json(recipe);
 

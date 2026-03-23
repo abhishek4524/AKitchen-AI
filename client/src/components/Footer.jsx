@@ -5,9 +5,7 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return (
     <footer className="w-full bg-[#017c45] text-gray-100 px-6 md:px-12 py-16">
-
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
-
         {/* Brand */}
         <div>
           <h2 className="text-2xl font-bold">
@@ -15,8 +13,8 @@ const Footer = () => {
           </h2>
 
           <p className="mt-4 text-sm text-gray-200 leading-relaxed">
-            Cook smarter with AI. Discover recipes based on ingredients
-            you already have and transform your kitchen experience.
+            Cook smarter with AI. Discover recipes based on ingredients you
+            already have and transform your kitchen experience.
           </p>
         </div>
 
@@ -25,7 +23,6 @@ const Footer = () => {
           <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
 
           <ul className="space-y-2 text-gray-200">
-
             <li>
               <Link to="/" className="hover:text-white transition">
                 Home
@@ -49,7 +46,6 @@ const Footer = () => {
                 About
               </Link>
             </li>
-
           </ul>
         </div>
 
@@ -58,23 +54,35 @@ const Footer = () => {
           <h3 className="text-lg font-semibold mb-4">Resources</h3>
 
           <ul className="space-y-2 text-gray-200">
-
-            <li className="hover:text-white cursor-pointer transition">
-              Privacy Policy
+            <li>
+              <Link
+                to="/privacy-policy"
+                className="hover:text-white transition"
+              >
+                Privacy Policy
+              </Link>
             </li>
 
-            <li className="hover:text-white cursor-pointer transition">
-              Terms & Conditions
+            <li>
+              <Link
+                to="/terms-conditions"
+                className="hover:text-white transition"
+              >
+                Terms & Conditions
+              </Link>
             </li>
 
-            <li className="hover:text-white cursor-pointer transition">
-              Help Center
+            <li>
+              <Link to="/help-center" className="hover:text-white transition">
+                Help Center
+              </Link>
             </li>
 
-            <li className="hover:text-white cursor-pointer transition">
-              Contact
+            <li>
+              <Link to="/contact" className="hover:text-white transition">
+                Contact
+              </Link>
             </li>
-
           </ul>
         </div>
 
@@ -83,46 +91,41 @@ const Footer = () => {
           <h3 className="text-lg font-semibold mb-4">Follow Us</h3>
 
           <div className="flex gap-4">
-
             <a
-              href="#"
+              href="https://www.facebook.com/share/1Meq7UrvJ4/"
               className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition"
             >
               <Facebook size={20} />
             </a>
 
             <a
-              href="#"
+              href="https://www.instagram.com/a_7ck_/"
               className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition"
             >
               <Instagram size={20} />
             </a>
 
             <a
-              href="#"
+              href="https://x.com/AKCNMOTIVETION"
               className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition"
             >
               <Twitter size={20} />
             </a>
 
             <a
-              href="#"
+              href="https://github.com/abhishek4524"
               className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition"
             >
               <Github size={20} />
             </a>
-
           </div>
-
         </div>
-
       </div>
 
       {/* Bottom */}
       <div className="border-t border-white/20 mt-12 pt-6 text-center text-sm text-gray-200">
         © {new Date().getFullYear()} AKitchen AI. All rights reserved.
       </div>
-
     </footer>
   );
 };

@@ -32,9 +32,9 @@ const Hero = () => {
         </button>
 
         {/* 🔥 Secondary CTA (optional but powerful) */}
-        <p className="mt-2 text-sm text-gray-500">
+        {/* <p className="mt-2 text-sm text-gray-500">
           Try 1 recipe for free
-        </p>
+        </p> */}
       </div>
 
       <div className="w-full h-[80vh] lg:h-[100vh] flex items-end">

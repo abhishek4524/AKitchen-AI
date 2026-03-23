@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import RecipeCard from "../components/RecipeCard";
 import { assets } from "../assets/assets";
 import axios from "axios";
 
@@ -13,6 +14,29 @@ const RecipeDetails = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("ingredients");
   const [servings, setServings] = useState(2);
+  const [saving, setSaving] = useState(false);
+  const [savedMessage, setSavedMessage] = useState(null);
+  const token = localStorage.getItem("token");
+   const [recommendedRecipes, setRecommendedRecipes] = useState([]);
+
+   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+  
+    useEffect(() => {
+      const loadRecommendedRecipes = async () => {
+        try {
+          const response = await fetch(`${API_BASE}/recipes`);
+          if (!response.ok) throw new Error("Unable to fetch recipes");
+          const data = await response.json();
+          const aiOnly = Array.isArray(data) ? data.filter((r) => r.aiGenerated) : [];
+          setRecommendedRecipes(aiOnly.slice(0, 6));
+        } catch (err) {
+          console.error("Error loading recommended recipes:", err);
+        }
+      };
+  
+      loadRecommendedRecipes();
+    }, []);
+  
 
   useEffect(() => {
     fetchRecipeDetails();
@@ -22,7 +46,7 @@ const RecipeDetails = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`http://localhost:5000/api/recipes/${id}`);
+      const response = await axios.get(`${API_BASE}/recipes/${id}`);
       const recipeData = response.data;
 
       const transformedRecipe = {
@@ -50,8 +74,42 @@ const RecipeDetails = () => {
     }
   };
 
+  const handleSave = async () => {
+    if (!token) {
+      // Not logged in: redirect to login or show a modal
+      const confirm = window.confirm("You need to log in to save recipes. Go to login?");
+      if (confirm) navigate("/login");
+      return;
+    }
+
+    if (saving) return;
+
+    setSaving(true);
+    try {
+      const response = await fetch(`${API_BASE}/user/save/${recipe.id}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Failed to save recipe");
+      }
+
+      setSavedMessage("Recipe saved successfully!");
+      setTimeout(() => setSavedMessage(null), 3000);
+    } catch (error) {
+      console.error("Error saving recipe:", error);
+      setSavedMessage(error.message);
+      setTimeout(() => setSavedMessage(null), 3000);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handlePrint = () => window.print();
-  const handleSave = () => alert("Recipe saved to your collection!");
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -127,7 +185,6 @@ const RecipeDetails = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white">
-
       {/* Hero Section */}
       <div className="relative h-[50vh] md:h-[65vh] overflow-hidden">
         <div className="absolute inset-0 bg-black/30 z-10"></div>
@@ -226,9 +283,14 @@ const RecipeDetails = () => {
         <div className="flex flex-wrap gap-4 mb-10">
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-full hover:bg-purple-700 transition-colors shadow-md hover:shadow-lg"
+            disabled={saving}
+            className={`flex items-center gap-2 text-white px-6 py-3 rounded-full transition-colors shadow-md hover:shadow-lg ${
+              saving
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-purple-600 hover:bg-purple-700"
+            }`}
           >
-            <span>❤️</span> Save Recipe
+            <span>❤️</span> {saving ? "Saving..." : "Save Recipe"}
           </button>
           <button
             onClick={handlePrint}
@@ -243,6 +305,19 @@ const RecipeDetails = () => {
             <span>📤</span> Share
           </button>
         </div>
+
+        {/* Message feedback */}
+        {savedMessage && (
+          <div
+            className={`fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg transition-all ${
+              savedMessage.includes("success")
+                ? "bg-green-500 text-white"
+                : "bg-red-500 text-white"
+            }`}
+          >
+            {savedMessage}
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="border-b border-gray-200 mb-8">
@@ -351,35 +426,18 @@ const RecipeDetails = () => {
         </div>
 
         {/* Related Recipes */}
-        <div>
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <span>🍽️</span> You Might Also Like
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((item) => (
-              <div
-                key={item}
-                className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all cursor-pointer group"
-                onClick={() => navigate(`/recipe/${item}`)}
-              >
-                <div className="overflow-hidden h-48">
-                  <img
-                    src={assets.paneer}
-                    alt="Related recipe"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold mb-2 group-hover:text-purple-600 transition-colors">
-                    Sample Recipe {item}
-                  </h3>
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>⏱️ 30 min</span>
-                    <span>⭐ 4.5</span>
-                  </div>
-                </div>
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-6 text-center">You Might Also Like</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mx-auto">
+            {recommendedRecipes.length > 0 ? (
+              recommendedRecipes.map((rec) => (
+                <RecipeCard key={rec._id} recipe={rec} />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8">
+                <p className="text-gray-500">No similar recipes available</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

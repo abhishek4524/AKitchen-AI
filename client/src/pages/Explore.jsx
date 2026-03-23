@@ -5,6 +5,10 @@ import { assets } from "../assets/assets";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// ✅ API base URL – defined once at module level (or inside component)
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
+// ======================== RECIPE CARD COMPONENT ========================
 const RecipeCard = ({ recipe, index, onQuickView }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -43,8 +47,8 @@ const RecipeCard = ({ recipe, index, onQuickView }) => {
               recipe.difficulty === "Easy"
                 ? "bg-green-500/30"
                 : recipe.difficulty === "Medium"
-                  ? "bg-yellow-500/30"
-                  : "bg-red-500/30"
+                ? "bg-yellow-500/30"
+                : "bg-red-500/30"
             } backdrop-blur-sm`}
           >
             {recipe.difficulty || "Medium"}
@@ -80,7 +84,8 @@ const RecipeCard = ({ recipe, index, onQuickView }) => {
   );
 };
 
-const Section = ({ title, recipes, onViewAll, onQuickView }) => {
+// ======================== SECTION COMPONENT ========================
+const Section = ({ title, recipes, onQuickView }) => {
   const [showAll, setShowAll] = useState(false);
   const displayedRecipes = showAll ? recipes : recipes.slice(0, 4);
 
@@ -122,6 +127,7 @@ const Section = ({ title, recipes, onViewAll, onQuickView }) => {
   );
 };
 
+// ======================== QUICK VIEW MODAL ========================
 const QuickViewModal = ({ recipe, onClose }) => {
   const navigate = useNavigate();
 
@@ -192,16 +198,12 @@ const QuickViewModal = ({ recipe, onClose }) => {
               <h3 className="font-semibold mb-2">Ingredients:</h3>
               <ul className="list-disc list-inside mb-4 text-gray-600">
                 {recipe.ingredients.map((ing, i) => {
-                  // Convert ingredient to a string
                   let ingredientText = "";
                   if (typeof ing === "string") {
                     ingredientText = ing;
                   } else if (ing && typeof ing === "object") {
-                    // Handle object with quantity and name
-                    ingredientText =
-                      `${ing.quantity || ""} ${ing.name || ""}`.trim();
-                    if (!ingredientText)
-                      ingredientText = ing.name || JSON.stringify(ing);
+                    ingredientText = `${ing.quantity || ""} ${ing.name || ""}`.trim();
+                    if (!ingredientText) ingredientText = ing.name || JSON.stringify(ing);
                   } else {
                     ingredientText = String(ing);
                   }
@@ -223,6 +225,7 @@ const QuickViewModal = ({ recipe, onClose }) => {
   );
 };
 
+// ======================== MAIN EXPLORE PAGE ========================
 const ExplorePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -250,13 +253,22 @@ const ExplorePage = () => {
     fetchRecipes();
   }, []);
 
+  // Inject styles once on mount and clean up on unmount
+  useEffect(() => {
+    const styleElement = document.createElement("style");
+    styleElement.textContent = styles;
+    document.head.appendChild(styleElement);
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
+
   const fetchRecipes = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Replace with your actual API endpoint
-      const response = await axios.get("http://localhost:5000/api/recipes");
+      const response = await axios.get(`${API_BASE}/recipes`);
       const recipes = response.data;
 
       // Transform server data to match frontend format
@@ -278,6 +290,7 @@ const ExplorePage = () => {
         aiGenerated: recipe.aiGenerated || false,
         createdAt: recipe.createdAt,
         instructions: recipe.instructions || [],
+        tags: recipe.tags || [],
       }));
 
       setAllRecipes(transformedRecipes);
@@ -288,7 +301,8 @@ const ExplorePage = () => {
     } catch (err) {
       console.error("Error fetching recipes:", err);
       setError(
-        "Failed to load recipes. Please check your connection and try again.",
+        err.response?.data?.message ||
+        "Failed to load recipes. Please check your connection and try again."
       );
     } finally {
       setLoading(false);
@@ -307,52 +321,53 @@ const ExplorePage = () => {
             break;
           case "Indian":
             count = recipes.filter(
-              (r) => r.cuisine?.toLowerCase() === "indian",
+              (r) => r.cuisine?.toLowerCase() === "indian"
             ).length;
             break;
           case "Italian":
             count = recipes.filter(
-              (r) => r.cuisine?.toLowerCase() === "italian",
+              (r) => r.cuisine?.toLowerCase() === "italian"
             ).length;
             break;
           case "Chinese":
             count = recipes.filter(
-              (r) => r.cuisine?.toLowerCase() === "chinese",
+              (r) => r.cuisine?.toLowerCase() === "chinese"
             ).length;
             break;
           case "Mexican":
             count = recipes.filter(
-              (r) => r.cuisine?.toLowerCase() === "mexican",
+              (r) => r.cuisine?.toLowerCase() === "mexican"
             ).length;
             break;
           case "Healthy":
+            // Check diet, tags, or description for healthy keywords
             count = recipes.filter(
               (r) =>
                 r.diet?.toLowerCase() === "healthy" ||
-                r.cuisine?.toLowerCase() === "healthy" ||
-                r.tags?.includes("healthy"),
+                (r.tags && r.tags.some((t) => t.toLowerCase() === "healthy")) ||
+                r.description?.toLowerCase().includes("healthy")
             ).length;
             break;
           case "Quick & Easy":
-            count = recipes.filter(
-              (r) =>
-                r.difficulty?.toLowerCase() === "easy" ||
-                (r.time && parseInt(r.time) <= 30),
-            ).length;
+            count = recipes.filter((r) => {
+              const difficulty = r.difficulty?.toLowerCase();
+              const timeValue = parseInt(r.time) || 0;
+              return difficulty === "easy" || timeValue <= 30;
+            }).length;
             break;
           case "Desserts":
             count = recipes.filter(
               (r) =>
                 r.cuisine?.toLowerCase() === "desserts" ||
-                r.category?.toLowerCase() === "desserts" ||
-                r.tags?.includes("dessert"),
+                (r.tags && r.tags.some((t) => t.toLowerCase() === "dessert")) ||
+                r.category?.toLowerCase() === "desserts"
             ).length;
             break;
           default:
             count = 0;
         }
         return { ...cat, count };
-      }),
+      })
     );
   };
 
@@ -368,8 +383,8 @@ const ExplorePage = () => {
         const cuisine = recipe.cuisine?.toLowerCase() || "";
         const diet = recipe.diet?.toLowerCase() || "";
         const difficulty = recipe.difficulty?.toLowerCase() || "";
-        const tags = recipe.tags?.map((t) => t.toLowerCase()) || [];
-        const time = parseInt(recipe.time) || 0;
+        const tags = (recipe.tags || []).map((t) => t.toLowerCase());
+        const timeValue = parseInt(recipe.time) || 0;
 
         switch (selectedCategory) {
           case "Indian":
@@ -383,13 +398,17 @@ const ExplorePage = () => {
           case "Healthy":
             return (
               diet === "healthy" ||
-              cuisine === "healthy" ||
-              tags.includes("healthy")
+              tags.includes("healthy") ||
+              recipe.description?.toLowerCase().includes("healthy")
             );
           case "Quick & Easy":
-            return difficulty === "easy" || time <= 30;
+            return difficulty === "easy" || timeValue <= 30;
           case "Desserts":
-            return cuisine === "desserts" || tags.includes("dessert");
+            return (
+              cuisine === "desserts" ||
+              tags.includes("dessert") ||
+              recipe.category?.toLowerCase() === "desserts"
+            );
           default:
             return true;
         }
@@ -403,9 +422,12 @@ const ExplorePage = () => {
         (recipe) =>
           recipe.title?.toLowerCase().includes(term) ||
           recipe.cuisine?.toLowerCase().includes(term) ||
-          recipe.ingredients?.some((i) => i?.toLowerCase().includes(term)) ||
+          (recipe.ingredients &&
+            recipe.ingredients.some((i) =>
+              (typeof i === "string" ? i : i.name || "").toLowerCase().includes(term)
+            )) ||
           recipe.description?.toLowerCase().includes(term) ||
-          recipe.diet?.toLowerCase().includes(term),
+          recipe.diet?.toLowerCase().includes(term)
       );
     }
 
@@ -421,38 +443,33 @@ const ExplorePage = () => {
     setDisplayCount((prev) => prev + 8);
   };
 
-  const handleViewAll = (category) => {
-    setSelectedCategory(category);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedCategory("All");
   };
 
-  // Get recipes by type
-  const getRecipesByType = (type) => {
-    if (type === "aiGenerated") {
-      return filteredRecipes.filter((r) => r.aiGenerated === true);
-    } else if (type === "trending") {
-      // You can implement your trending logic here
-      // For now, return recipes with highest ratings
-      return [...filteredRecipes].sort(
-        (a, b) => (b.rating || 0) - (a.rating || 0),
-      );
-    } else if (type === "recent") {
-      // Most recent recipes
-      return [...filteredRecipes].sort(
-        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
-      );
-    }
-    return [];
+  // Helper functions for sections – these operate on the full allRecipes dataset,
+  // so they are unaffected by filters/search.
+  const getTrendingRecipes = () => {
+    // Simple trending logic: sort by rating (or could be based on popularity)
+    return [...allRecipes]
+      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      .slice(0, 8);
   };
 
-  const trendingRecipes = getRecipesByType("trending");
-  const aiGeneratedRecipes = getRecipesByType("aiGenerated");
-  const recentRecipes = getRecipesByType("recent");
+  const getRecentRecipes = () => {
+    return [...allRecipes]
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      .slice(0, 8);
+  };
+
+  const getAiGeneratedRecipes = () => {
+    return allRecipes.filter((r) => r.aiGenerated === true).slice(0, 8);
+  };
+
+  const trendingRecipes = getTrendingRecipes();
+  const aiGeneratedRecipes = getAiGeneratedRecipes();
+  const recentRecipes = getRecentRecipes();
 
   // Loading state
   if (loading) {
@@ -538,8 +555,7 @@ const ExplorePage = () => {
             Explore <span className="text-purple-600">Recipes</span>
           </h1>
           <p className="text-gray-600 text-lg mb-8 max-w-2xl mx-auto animate-fadeInUp">
-            Discover {filteredRecipes.length} delicious recipes created by AI
-            and our community
+            Discover {allRecipes.length} delicious recipes created by AI and our community
           </p>
 
           {/* Search Form */}
@@ -617,7 +633,6 @@ const ExplorePage = () => {
                   <Section
                     title="🔥 Trending Recipes"
                     recipes={trendingRecipes}
-                    onViewAll={() => {}}
                     onQuickView={setSelectedRecipe}
                   />
                 )}
@@ -626,7 +641,6 @@ const ExplorePage = () => {
                   <Section
                     title="🆕 Recently Added"
                     recipes={recentRecipes}
-                    onViewAll={() => {}}
                     onQuickView={setSelectedRecipe}
                   />
                 )}
@@ -635,7 +649,6 @@ const ExplorePage = () => {
                   <Section
                     title="✨ AI Generated Recipes"
                     recipes={aiGeneratedRecipes}
-                    onViewAll={() => {}}
                     onQuickView={setSelectedRecipe}
                   />
                 )}
@@ -715,7 +728,7 @@ const ExplorePage = () => {
   );
 };
 
-// Styles
+// ======================== STYLES ========================
 const styles = `
   @keyframes fadeIn {
     from { opacity: 0; }
@@ -778,12 +791,5 @@ const styles = `
     animation: float-delayed 3.5s ease-in-out infinite;
   }
 `;
-
-// Add styles to document
-if (typeof document !== "undefined") {
-  const styleElement = document.createElement("style");
-  styleElement.textContent = styles;
-  document.head.appendChild(styleElement);
-}
 
 export default ExplorePage;

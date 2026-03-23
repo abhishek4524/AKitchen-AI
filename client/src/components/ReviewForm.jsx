@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ReviewForm = ({ onSubmit }) => {
+  const [name, setName] = useState('');
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [hoveredRating, setHoveredRating] = useState(0);
@@ -21,10 +22,11 @@ const ReviewForm = ({ onSubmit }) => {
 
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Simulate API call delay while backend save happens in parent
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    onSubmit({ rating, comment: comment.trim() });
+    onSubmit({ name: name.trim(), rating, comment: comment.trim() });
+    setName('');
     setRating(0);
     setComment('');
     setIsSubmitting(false);
@@ -84,6 +86,21 @@ const ReviewForm = ({ onSubmit }) => {
             {rating ? `${rating}.0` : 'Select rating'}
           </span>
         </div>
+      </div>
+
+      {/* Name Field */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">
+          Your Name <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#CBB9DF] focus:border-transparent transition-all duration-200"
+          placeholder="Enter your name"
+          required
+        />
       </div>
 
       {/* Comment Field */}
