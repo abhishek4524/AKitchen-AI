@@ -52,7 +52,7 @@ useEffect(() => {
 
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/user/me",
+        "https://akitchen-ai.onrender.com/api/user/me" || "http://localhost:5000/api/user/me",
         {
           headers: {
             Authorization: `Bearer ${token}`,
