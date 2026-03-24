@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import ReviewForm from "./ReviewForm"; // Assume this is already clean
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
 // Helper component for rating stars
 const Stars = ({ rating }) => {
   const fullStars = Math.floor(rating);
@@ -71,7 +73,7 @@ const ReviewSection = () => {
   useEffect(() => {
     const loadReviews = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/reviews");
+        const response = await fetch(`${API_BASE}/reviews`);
         if (!response.ok) throw new Error("Unable to load reviews");
         const data = await response.json();
         setReviews(data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
@@ -93,7 +95,7 @@ const ReviewSection = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:5000/api/reviews", {
+      const response = await fetch(`${API_BASE}/reviews`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
