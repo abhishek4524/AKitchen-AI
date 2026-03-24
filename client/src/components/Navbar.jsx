@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { Menu, Search, X, User } from "lucide-react";
 import axios from "axios";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -52,7 +54,7 @@ useEffect(() => {
 
     try {
       const res = await axios.get(
-        "https://akitchen-ai.onrender.com/api/user/me" || "http://localhost:5000/api/user/me",
+        `${API_BASE}/user/me`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

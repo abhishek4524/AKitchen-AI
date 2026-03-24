@@ -4,6 +4,9 @@ import { Star, Clock } from "lucide-react";
 import { assets } from "../assets/assets";
 import axios from "axios";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
+
 const TrendingCategories = () => {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +21,7 @@ const TrendingCategories = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get("https://akitchen-ai.onrender.com/api/recipes" || "http://localhost:5000/api/recipes");
+      const response = await axios.get(`${API_BASE}/recipes`);
       const allRecipes = response.data;
 
       // Filter for original (non-AI generated) recipes only
