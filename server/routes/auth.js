@@ -14,7 +14,7 @@ router.get("/google/callback",
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
-        const clientUrl = process.env.CLIENT_URL || "http://localhost:5174" || "https://akitchenai.in" || "https://akitchen.vercel.app";
+        const clientUrl = process.env.CLIENT_URL || "http://localhost:5174" || "https://akitchenai.in" || "https://akitchen.vercel.app" || "https://www.akitchenai.in";
         res.redirect(`${clientUrl}/profile?token=${token}`);
     }
 );

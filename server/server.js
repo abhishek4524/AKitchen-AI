@@ -26,6 +26,7 @@ const app = express();
 const allowedOrigins = [
   "https://akitchen.vercel.app",
   "https://akitchenai.in",
+  "https://www.akitchenai.in"
 ];
 
 app.use(
