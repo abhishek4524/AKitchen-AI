@@ -86,13 +86,6 @@ const AdminLogin = () => {
               {loading ? 'Logging in...' : 'Login'}
             </button>
           </form>
-
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-            <p className="font-medium mb-1">Demo Credentials:</p>
-            <p>Email: admin@example.com</p>
-            <p>Password: admin123</p>
-          </div>
-
           <p className="text-center text-gray-500 text-sm mt-6">
             Contact your administrator for login credentials
           </p>

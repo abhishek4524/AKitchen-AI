@@ -2,65 +2,59 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-// Admin Login
+// 🔐 Admin Login
 exports.adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("🔐 Login attempt:", { email, passwordLength: password?.length });
+
+    console.log("🔐 Login:", email);
 
     if (!email || !password) {
-      console.log("❌ Missing email or password");
-      return res.status(400).json({ message: "Email and password required" });
+      return res.status(400).json({ message: "Email & password required" });
     }
 
-    // Find user
     const user = await User.findOne({ email });
-    console.log("👤 User found:", user ? "Yes" : "No");
 
     if (!user) {
-      console.log("❌ User not found in database");
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    console.log("🔍 User details:", { isAdmin: user.isAdmin, hasPassword: !!user.password });
-
-    // Check password with bcrypt
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      console.log("❌ Password mismatch");
-      return res.status(401).json({ message: "Invalid email or password" });
+    // ❗ IMPORTANT FIX
+    if (!user.password) {
+      return res.status(400).json({
+        message: "This account uses Google login. Use Google sign-in.",
+      });
     }
 
-    // Check if user is admin
-    if (!user.isAdmin) {
-      console.log("❌ User is not admin");
-      return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    const isMatch = await user.comparePassword(password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Generate token
-    const jwtSecret = process.env.JWT_SECRET || "your-secret-key";
+    if (user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access only" });
+    }
+
     const token = jwt.sign(
-      { id: user._id, email: user.email, isAdmin: true },
-      jwtSecret,
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    console.log("✅ Login successful for:", email);
-
-    res.status(200).json({
+    res.json({
       success: true,
-      message: "Login successful",
       token,
       user: {
         id: user._id,
-        name: user.name,
         email: user.email,
-        isAdmin: user.isAdmin,
+        role: user.role,
       },
     });
+
   } catch (error) {
-    console.error("❌ Login error:", error);
-    res.status(500).json({ message: "Server error: " + error.message });
+    console.error("❌ Error:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 

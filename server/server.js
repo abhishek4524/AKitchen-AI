@@ -26,7 +26,10 @@ const app = express();
 const allowedOrigins = [
   "https://akitchen.vercel.app",
   "https://akitchenai.in",
-  "https://www.akitchenai.in"
+  "https://www.akitchenai.in",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://akitchenai-admin.vercel.app"
 ];
 
 app.use(

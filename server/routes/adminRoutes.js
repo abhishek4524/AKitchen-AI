@@ -6,6 +6,9 @@ const { protect } = require("../middleware/auth");
 // Admin login route
 router.post("/auth/login", adminLogin);
 
+
+
+module.exports = router;
 // Admin-only routes
 router.use(protect);
 
