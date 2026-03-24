@@ -18,7 +18,7 @@ const TrendingCategories = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get("http://localhost:5000/api/recipes");
+      const response = await axios.get("https://akitchen.vercel.app/api/recipes" || "https://www.akitchenai.in/api/recipes" || "http://localhost:5000/api/recipes");
       const allRecipes = response.data;
 
       // Filter for original (non-AI generated) recipes only
