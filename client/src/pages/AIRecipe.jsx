@@ -167,67 +167,124 @@ const AIRecipe = () => {
     };
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#feb7bb] to-[#ffd6d9]">
-        <Navbar />
-        <div className="relative min-h-screen pt-24 px-4 flex flex-col items-center justify-center text-center">
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-4">
-            Turn Ingredients into Delicious Recipes 🍳
-          </h1>
-          <p className="text-gray-700 text-lg md:text-xl max-w-2xl mb-8">
-            Just type ingredients like <b>"tomato, onion, paneer"</b> and get a complete recipe with steps, nutrition & grocery list instantly.
-          </p>
+<div className="min-h-screen bg-gradient-to-b from-[#feb7bb] to-[#ffd6d9]">
+  <Navbar />
 
-          <div className="w-full max-w-xl bg-white shadow-xl rounded-2xl p-6 mb-6">
-            <input
-              type="text"
-              placeholder="Try: Tomato, Onion, Paneer..."
-              value={demoIngredients}
-              onChange={(e) => setDemoIngredients(e.target.value)}
-              className="w-full border p-3 rounded-lg mb-4 outline-none focus:ring-2 focus:ring-green-300"
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={handleDemo}
-                className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold"
-              >
-                ✨ Try Demo
-              </button>
-              <button
-                onClick={() => navigate("/login")}
-                className="flex-1 border border-gray-300 py-3 rounded-lg font-semibold hover:bg-gray-100"
-              >
-                🔐 Login
-              </button>
-            </div>
-          </div>
+  <div className="relative min-h-screen pt-24 px-4 flex flex-col items-center justify-center text-center">
 
-          <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600 mb-6">
-            <span>⚡ Instant recipes</span>
-            <span>🥗 Smart nutrition</span>
-            <span>🛒 Auto grocery list</span>
-          </div>
+    {/* 🔥 Heading */}
+    <h1 className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight">
+      Cook Anything From What You Have 🍳
+    </h1>
 
-          {demoRecipe && (
-            <div className="bg-white shadow-2xl rounded-2xl p-6 w-full max-w-xl text-left">
-              <h2 className="text-2xl font-bold mb-2">{demoRecipe.title}</h2>
-              <p className="text-gray-500 mb-3">⏱ {demoRecipe.time}</p>
-              <h3 className="font-semibold mb-2">Steps:</h3>
-              <ul className="list-disc pl-5 space-y-1 text-gray-700">
-                {demoRecipe.steps.map((step, i) => (
-                  <li key={i}>{step}</li>
-                ))}
-              </ul>
-              <button
-                onClick={() => navigate("/login")}
-                className="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold"
-              >
-                🚀 Unlock Full Features
-              </button>
-            </div>
-          )}
-        </div>
-        <Footer />
+    <p className="text-gray-700 text-lg md:text-xl max-w-2xl mb-4">
+      AI will turn your ingredients into a perfect recipe in seconds.
+    </p>
+
+    {/* 🔐 Strong Login Notice */}
+    <p className="text-sm text-red-500 font-medium mb-6">
+      🔒 Login required to generate full recipes with steps, nutrition & grocery list
+    </p>
+
+    {/* 🎯 Steps */}
+    <div className="flex flex-wrap justify-center gap-6 mb-8 text-sm md:text-base">
+      <span>🥗 Add Ingredients</span>
+      <span>🤖 AI Generates Recipe</span>
+      <span>🔐 Unlock Full Recipe</span>
+    </div>
+
+    {/* 🧠 Input Box */}
+    <div className="w-full max-w-xl bg-white shadow-xl rounded-2xl p-6 mb-6">
+      <input
+        type="text"
+        placeholder="Enter ingredients (e.g., rice, tomato, paneer)"
+        value={demoIngredients}
+        onChange={(e) => setDemoIngredients(e.target.value)}
+        className="w-full border p-3 rounded-lg mb-4 outline-none focus:ring-2 focus:ring-green-300"
+      />
+
+      <div className="flex gap-3">
+        <button
+          onClick={handleDemo}
+          className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold"
+        >
+          ✨ Generate Preview
+        </button>
+
+        <button
+          onClick={() => navigate("/login")}
+          className="flex-1 border border-gray-300 py-3 rounded-lg font-semibold hover:bg-gray-100"
+        >
+          🔐 Login
+        </button>
       </div>
+
+      <p className="text-xs text-gray-500 mt-3">
+        ⚡ You’ll see a preview. Login to unlock full recipe.
+      </p>
+    </div>
+
+    {/* ⚡ Features */}
+    <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600 mb-6">
+      <span>⚡ Instant recipes</span>
+      <span>🥗 Smart nutrition</span>
+      <span>🛒 Auto grocery list</span>
+    </div>
+
+    {/* 🍽️ Demo Recipe Preview */}
+    {demoRecipe && (
+      <div className="relative bg-white shadow-2xl rounded-2xl p-6 w-full max-w-xl text-left">
+
+        <h2 className="text-2xl font-bold mb-2">{demoRecipe.title}</h2>
+        <p className="text-gray-500 mb-3">⏱ {demoRecipe.time}</p>
+
+        {/* 🔥 Progress bar */}
+        <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+          <div className="bg-green-500 h-2 rounded-full w-[60%]"></div>
+        </div>
+        <p className="text-sm text-gray-500 mb-3">
+          Recipe 60% ready — login to complete 🔓
+        </p>
+
+        <h3 className="font-semibold mb-2">Steps:</h3>
+        <ul className="list-disc pl-5 space-y-1 text-gray-700">
+          {demoRecipe.steps.slice(0, 3).map((step, i) => (
+            <li key={i}>{step}</li>
+          ))}
+        </ul>
+
+        {/* 🔒 Locked content */}
+        <div className="mt-3 text-gray-400 italic">
+          🔒 {demoRecipe.steps.length - 3} more steps locked  
+          <br />
+          🔒 Full nutrition details locked  
+          <br />
+          🔒 Grocery list locked  
+        </div>
+
+        {/* 🔥 Blur overlay */}
+        <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent"></div>
+
+        {/* 🔥 CTA */}
+        <button
+          onClick={() => navigate("/login")}
+          className="mt-6 w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold"
+        >
+          🚀 Login to Unlock Full Recipe
+        </button>
+
+        {/* 💡 Extra push */}
+        <p className="text-xs text-center text-gray-500 mt-2">
+          🎁 Get your first full recipe FREE after login
+        </p>
+
+      </div>
+    )}
+
+  </div>
+
+  <Footer />
+</div>
     );
   }
 
