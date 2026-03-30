@@ -535,7 +535,7 @@ const fetchUserData = async () => {
                     className="mt-6 space-y-4 overflow-hidden"
                   >
                     {/* Theme Toggle */}
-                    <div className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition cursor-pointer" onClick={handleThemeToggle}>
+                    {/* <div className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition cursor-pointer" onClick={handleThemeToggle}>
                       <div className="flex items-center gap-3">
                         {localSettings.theme === 'dark' ? <Moon size={18} className="text-gray-600" /> : <Sun size={18} className="text-amber-500" />}
                         <span className="text-gray-700">Dark Mode</span>
@@ -547,7 +547,7 @@ const fetchUserData = async () => {
                           transition={{ type: "spring", stiffness: 500, damping: 30 }}
                         />
                       </div>
-                    </div>
+                    </div> */}
 
                     {/* Notifications Toggle */}
                     <div className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition cursor-pointer" onClick={handleNotificationToggle}>

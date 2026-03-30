@@ -693,7 +693,7 @@ const ExplorePage = () => {
             {/* Load More Button */}
             {filteredRecipes.length > displayCount && (
               <div className="flex justify-center mt-16">
-                <button
+                {/* <button
                   onClick={handleLoadMore}
                   className="group bg-black text-white px-8 py-4 rounded-full hover:bg-purple-600 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl flex items-center gap-3"
                 >
@@ -701,7 +701,7 @@ const ExplorePage = () => {
                   <span className="transform group-hover:translate-x-1 transition-transform">
                     →
                   </span>
-                </button>
+                </button> */}
               </div>
             )}
           </>
