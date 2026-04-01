@@ -25,10 +25,10 @@ const AIRecipe = () => {
   const [showRecipe, setShowRecipe] = useState(false);
   const [generatedRecipe, setGeneratedRecipe] = useState(null);
   const [recommendedRecipes, setRecommendedRecipes] = useState([]);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // Fetch recommended recipes (only if logged in)
+  // Fetch recommended recipes
   useEffect(() => {
-    if (!token) return;
     const loadRecommended = async () => {
       try {
         const response = await fetch(`${API_BASE}/recipes`);
@@ -41,7 +41,7 @@ const AIRecipe = () => {
       }
     };
     loadRecommended();
-  }, [token]);
+  }, []);
 
   // ✅ Generate recipe with auth token
   const handleGenerate = async () => {
@@ -151,142 +151,7 @@ const AIRecipe = () => {
     </motion.div>
   );
 
-  // ========== RENDER LOGGED-OUT VERSION ==========
-  if (!token) {
-    const handleDemo = () => {
-      setDemoRecipe({
-        title: "Paneer Butter Masala 🍛",
-        time: "30 mins",
-        steps: [
-          "Heat butter in a pan",
-          "Add onions, tomatoes & spices",
-          "Add paneer cubes",
-          "Cook for 10 mins & serve hot",
-        ],
-      });
-    };
 
-    return (
-<div className="min-h-screen bg-gradient-to-b from-[#feb7bb] to-[#ffd6d9]">
-  <Navbar />
-
-  <div className="relative min-h-screen pt-24 px-4 flex flex-col items-center justify-center text-center">
-
-    {/* 🔥 Heading */}
-    <h1 className="text-4xl md:text-6xl font-extrabold mb-4 leading-tight">
-      Cook Anything From What You Have 🍳
-    </h1>
-
-    <p className="text-gray-700 text-lg md:text-xl max-w-2xl mb-4">
-      AI will turn your ingredients into a perfect recipe in seconds.
-    </p>
-
-    {/* 🔐 Strong Login Notice */}
-    <p className="text-sm text-red-500 font-medium mb-6">
-      🔒 Login required to generate full recipes with steps, nutrition & grocery list
-    </p>
-
-    {/* 🎯 Steps */}
-    <div className="flex flex-wrap justify-center gap-6 mb-8 text-sm md:text-base">
-      <span>🥗 Add Ingredients</span>
-      <span>🤖 AI Generates Recipe</span>
-      <span>🔐 Unlock Full Recipe</span>
-    </div>
-
-    {/* 🧠 Input Box */}
-    <div className="w-full max-w-xl bg-white shadow-xl rounded-2xl p-6 mb-6">
-      <input
-        type="text"
-        placeholder="Enter ingredients (e.g., rice, tomato, paneer)"
-        value={demoIngredients}
-        onChange={(e) => setDemoIngredients(e.target.value)}
-        className="w-full border p-3 rounded-lg mb-4 outline-none focus:ring-2 focus:ring-green-300"
-      />
-
-      <div className="flex gap-3">
-        <button
-          onClick={handleDemo}
-          className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold"
-        >
-          ✨ Generate Preview
-        </button>
-
-        <button
-          onClick={() => navigate("/login")}
-          className="flex-1 border border-gray-300 py-3 rounded-lg font-semibold hover:bg-gray-100"
-        >
-          🔐 Login
-        </button>
-      </div>
-
-      <p className="text-xs text-gray-500 mt-3">
-        ⚡ You’ll see a preview. Login to unlock full recipe.
-      </p>
-    </div>
-
-    {/* ⚡ Features */}
-    <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600 mb-6">
-      <span>⚡ Instant recipes</span>
-      <span>🥗 Smart nutrition</span>
-      <span>🛒 Auto grocery list</span>
-    </div>
-
-    {/* 🍽️ Demo Recipe Preview */}
-    {demoRecipe && (
-      <div className="relative bg-white shadow-2xl rounded-2xl p-6 w-full max-w-xl text-left">
-
-        <h2 className="text-2xl font-bold mb-2">{demoRecipe.title}</h2>
-        <p className="text-gray-500 mb-3">⏱ {demoRecipe.time}</p>
-
-        {/* 🔥 Progress bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-          <div className="bg-green-500 h-2 rounded-full w-[60%]"></div>
-        </div>
-        <p className="text-sm text-gray-500 mb-3">
-          Recipe 60% ready — login to complete 🔓
-        </p>
-
-        <h3 className="font-semibold mb-2">Steps:</h3>
-        <ul className="list-disc pl-5 space-y-1 text-gray-700">
-          {demoRecipe.steps.slice(0, 3).map((step, i) => (
-            <li key={i}>{step}</li>
-          ))}
-        </ul>
-
-        {/* 🔒 Locked content */}
-        <div className="mt-3 text-gray-400 italic">
-          🔒 {demoRecipe.steps.length - 3} more steps locked  
-          <br />
-          🔒 Full nutrition details locked  
-          <br />
-          🔒 Grocery list locked  
-        </div>
-
-        {/* 🔥 Blur overlay */}
-        <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent"></div>
-
-        {/* 🔥 CTA */}
-        <button
-          onClick={() => navigate("/login")}
-          className="mt-6 w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold"
-        >
-          🚀 Login to Unlock Full Recipe
-        </button>
-
-        {/* 💡 Extra push */}
-        <p className="text-xs text-center text-gray-500 mt-2">
-          🎁 Get your first full recipe FREE after login
-        </p>
-
-      </div>
-    )}
-
-  </div>
-
-  <Footer />
-</div>
-    );
-  }
 
   // ========== RENDER LOGGED-IN VERSION ==========
   return (
@@ -387,14 +252,15 @@ const AIRecipe = () => {
                 </motion.button>
               ))}
             </div>
-
-            <motion.button
+            {
+              token ?(
+              <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleGenerate}
               disabled={isGenerating}
               className="mt-6 w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-70"
-            >
+              >
               {isGenerating ? (
                 <span className="flex items-center justify-center gap-2">
                   <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -407,6 +273,17 @@ const AIRecipe = () => {
                 "🍳 Generate Recipe"
               )}
             </motion.button>
+              ) : (<motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowLoginModal(true)}
+              className="mt-6 w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-70"
+              >
+                  Generate Recipe
+            </motion.button>
+
+              )
+        }
           </div>
         </motion.div>
 
@@ -515,23 +392,48 @@ const AIRecipe = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="relative z-10 w-full flex flex-col items-center mt-24 px-4 pb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">You Might Also Like</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
-            {recommendedRecipes.length > 0 ? (
-              recommendedRecipes.map((recipe) => <RecipeCard key={recipe._id} recipe={recipe} />)
-            ) : (
-              // Fallback static recipes
-              <>
-                {[
-                  { id: 1, title: "Paneer Butter Masala", time: "30 mins", image: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", cuisine: "Indian", difficulty: "Medium" },
-                  { id: 2, title: "Margherita Pizza", time: "20 mins", image: "https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", cuisine: "Italian", difficulty: "Easy" },
-                  { id: 3, title: "Vegetable Stir Fry", time: "15 mins", image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", cuisine: "Chinese", difficulty: "Easy" },
-                ].map((recipe) => (
-                  <RecipeCard key={recipe.id} recipe={recipe} />
-                ))}
-              </>
-            )}
+            {recommendedRecipes.map((recipe) => <RecipeCard key={recipe._id} recipe={recipe} />)}
           </div>
         </motion.div>
       </div>
+
+      {/* Login Modal */}
+      <AnimatePresence>
+        {showLoginModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50"
+            onClick={() => setShowLoginModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="bg-white p-8 rounded-2xl shadow-2xl max-w-md mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-bold mb-4">Login Required</h3>
+              <p className="mb-6 text-gray-600">Please login first to generate AI recipes.</p>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => { setShowLoginModal(false); navigate('/login'); }}
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => setShowLoginModal(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <ReviewSection />
       <Footer />

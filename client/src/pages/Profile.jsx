@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -60,17 +60,29 @@ const Profile = () => {
 
 
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+  const [searchParams] = useSearchParams();
 
+  // Handle auth redirect and token check
   useEffect(() => {
+    let token = localStorage.getItem("token");
+    const urlToken = searchParams.get("token");
+
+    if (urlToken) {
+      localStorage.setItem("token", urlToken);
+      token = urlToken;
+      navigate("/profile", { replace: true });
+    }
+
     if (!token) {
       navigate("/login");
       return;
     }
+
     fetchUserData();
-  }, [token]);
+  }, [searchParams, navigate]);
 
 const fetchUserData = async () => {
+  const token = localStorage.getItem("token"); 
   try {
     setLoading(true);
     // Get user profile
@@ -365,8 +377,8 @@ const fetchUserData = async () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  {!isPremium ? (
+                 <div className="flex flex-col sm:flex-row gap-3">
+                  {/* {!isPremium ? (
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.98 }}
@@ -385,7 +397,7 @@ const fetchUserData = async () => {
                       <Settings size={18} />
                       Manage Subscription
                     </motion.button>
-                  )}
+                  )} */}
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     onClick={handleLogout}
@@ -394,7 +406,7 @@ const fetchUserData = async () => {
                     <LogOut size={18} />
                     <span className="font-medium">Logout</span>
                   </motion.button>
-                </div>
+                </div> 
               </div>
 
               {/* Stats Cards with modern glass effect */}
@@ -442,7 +454,7 @@ const fetchUserData = async () => {
                   .filter((r) => r.aiGenerated)
                   .slice(0, 6)
                   .map((recipe) => (
-                    <div key={recipe._id} className="bg-purple-50 rounded-xl p-3 border border-purple-100">
+                    <div key={recipe._id} onClick={() => navigate(`/recipe/${recipe._id}`)} className="bg-purple-50 rounded-xl p-3 border border-purple-100 cursor-pointer hover:bg-purple-100 transition-colors">
                       <h3 className="font-semibold text-gray-800">{recipe.title}</h3>
                       <p className="text-xs text-gray-500">{new Date(recipe.createdAt).toLocaleDateString()}</p>
                       <p className="text-sm text-gray-700 truncate mt-1">{recipe.description || "No description"}</p>
