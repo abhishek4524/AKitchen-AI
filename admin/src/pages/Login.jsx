@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { useAuthStore } from "../store/authStore";
 import axios from "axios";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +24,7 @@ export function Login() {
 
     try {
       // The auth endpoint handles both admin credentials
-      const res = await axios.post("http://localhost:5000/api/admin/auth/login", { email, password });
+      const res = await axios.post(`${API_BASE}/admin/auth/login`, { email, password });
       
       if (res.data.success) {
         login(res.data.user, res.data.token);
