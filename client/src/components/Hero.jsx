@@ -25,7 +25,7 @@ const Hero = () => {
         </p>
 
         {/* 🔥 CTA BUTTON */}
-        <div className="flex flex-col sm:flex-row gap-4 my-6 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-4 my-6 w-full sm:w-auto px-5 sm:px-0">
           <button
             onClick={() => navigate("/ai-recipe")}
             className="
@@ -108,10 +108,10 @@ const Hero = () => {
       `}</style>
 {showDemo && (
   <div className="fixed inset-0 flex items-center justify-center bg-black/70 bg-opacity-70 z-50">
-    <div className="relative w-full max-w-3xl p-4  rounded-lg">
+    <div className="relative w-full max-w-3xl p-5 rounded-lg">
       <button
         onClick={() => setShowDemo(false)}
-        className="absolute top-[-10px] right-[-10px] text-gray-400 hover:text-gray-800"
+        className="absolute top-[-5px] right-[-5px] text-gray-400 hover:text-gray-800"
       >
         <X className="w-6 h-6" />
       </button>
