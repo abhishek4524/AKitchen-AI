@@ -37,7 +37,7 @@ export const adminAuthAPI = {
 
 // Recipes API
 export const recipesAPI = {
-  getAll: () => apiCall('/recipes'),
+  getAll: (opts) => apiCall('/recipes', opts),
   getById: (id) => apiCall(`/recipes/${id}`),
   create: (data) => apiCall('/recipes', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data) => apiCall(`/recipes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -46,14 +46,21 @@ export const recipesAPI = {
 
 // Users API
 export const usersAPI = {
-  getAll: () => apiCall('/admin/users'),
+  getAll: (opts) => apiCall('/admin/users', opts),
   getById: (id) => apiCall(`/admin/users/${id}`),
+  update: (id, data) => apiCall(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id) => apiCall(`/admin/users/${id}`, { method: 'DELETE' }),
   updateProfile: (id, data) => apiCall(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 };
 
 // Items API
 export const itemsAPI = {
-  getAll: () => apiCall('/grocery/items'),
+  getAll: (opts) => apiCall('/grocery/items', opts),
   create: (data) => apiCall('/grocery/items', { method: 'POST', body: JSON.stringify(data) }),
   delete: (id) => apiCall(`/grocery/items/${id}`, { method: 'DELETE' }),
+};
+
+export const adminStatsAPI = {
+  getStats: () => apiCall('/admin/stats'),
+  getUsage: () => apiCall('/usage/stats'),
 };

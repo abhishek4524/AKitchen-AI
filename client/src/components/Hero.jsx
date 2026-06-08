@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { assets } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
+import { CirclePlay, X } from "lucide-react";
 
 const Hero = () => {
   const navigate = useNavigate();
+  const [showDemo, setShowDemo] = useState(false);
 
   return (
     <div>
@@ -23,18 +25,44 @@ const Hero = () => {
         </p>
 
         {/* 🔥 CTA BUTTON */}
-        <button
-          onClick={() => navigate("/ai-recipe")}
-          className="mt-6 px-6 py-3 bg-black text-white rounded-full text-lg font-semibold 
-          hover:scale-105 hover:opacity-90 transition-all duration-300 shadow-lg"
-        >
-          Generate Recipe ⚡
-        </button>
+        <div className="flex flex-col sm:flex-row gap-4 my-6 w-full sm:w-auto">
+          <button
+            onClick={() => navigate("/ai-recipe")}
+            className="
+              w-full sm:w-auto
+              px-6 py-3
+              bg-black text-white
+              rounded-full
+              text-base sm:text-lg
+              font-semibold
+              hover:scale-105 hover:opacity-90
+              transition-all duration-300
+              shadow-lg cursor-pointer
+            "
+          >
+            Generate Recipe ⚡
+          </button>
 
-        {/* 🔥 Secondary CTA (optional but powerful) */}
-        {/* <p className="mt-2 text-sm text-gray-500">
-          Try 1 recipe for free
-        </p> */}
+          <button
+            onClick={() => setShowDemo(true)}
+            className="
+              w-full sm:w-auto
+              px-6 py-3
+              border-2 border-black
+              text-black
+              rounded-full
+              text-base sm:text-lg
+              font-semibold
+              hover:scale-105 hover:opacity-90
+              transition-all duration-300
+              shadow-lg cursor-pointer
+              flex items-center justify-center
+            "
+          >
+            <CirclePlay className="w-5 h-5 mr-2" />
+            Demo Video
+          </button>
+        </div>
       </div>
 
       <div className="w-full h-[80vh] lg:h-[100vh] flex items-end">
@@ -78,7 +106,28 @@ const Hero = () => {
           animation: slideUp 1.2s ease-out forwards;
         }
       `}</style>
+{showDemo && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black/70 bg-opacity-70 z-50">
+    <div className="relative w-full max-w-3xl p-4  rounded-lg">
+      <button
+        onClick={() => setShowDemo(false)}
+        className="absolute top-[-10px] right-[-10px] text-gray-400 hover:text-gray-800"
+      >
+        <X className="w-6 h-6" />
+      </button>
+      <div className="relative pt-[56.25%]">
+        <iframe
+          src="https://www.youtube.com/embed/COh9ylWomh8?si=2N8qv8WyRzX13dKH&autoplay=1"
+          title="Demo Video"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="absolute top-0 left-0 w-full h-full"
+        ></iframe>
+      </div>
     </div>
+  </div>
+)}
+</div>
   );
 };
 

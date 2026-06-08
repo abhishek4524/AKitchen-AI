@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, Search, X, User } from "lucide-react";
 import axios from "axios";
+import { assets } from "../assets/assets";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
@@ -86,12 +87,17 @@ useEffect(() => {
           Explore
         </Link>
 
+        <Link to="/nutrition-ai" className="hover:underline transition">
+          Nutrition AI
+        </Link>
+
       </div>
 
       {/* Logo */}
       <div className="text-2xl font-bold text-center">
         <Link to="/" className="">
-          AKitchen<span className="text-orange-500">AI</span>
+        <img src={assets.aklogo} alt="AKitchen AI" className="w-50"/>
+          {/* AKitchen<span className="text-orange-500">AI</span> */}
         </Link>
       </div>
 
@@ -145,6 +151,10 @@ useEffect(() => {
 
           <Link to="/explore" onClick={() => setMenuOpen(false)}>
             Explore
+          </Link>
+
+          <Link to="/nutrition-ai" onClick={() => setMenuOpen(false)}>
+            Nutrition AI
           </Link>
 
           <Link to="/grocery" onClick={() => setMenuOpen(false)}>

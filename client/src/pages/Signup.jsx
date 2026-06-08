@@ -22,6 +22,7 @@ import {
   Heart,
   Bell
 } from "lucide-react";
+import { getGuestId } from '../utils/guest';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -138,32 +139,65 @@ const Signup = () => {
     }
     
     setIsLoading(true);
+
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
     
-    // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      console.log('Signup data:', formData);
-      
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `Server error: ${response.status}`);
+      }
+
+      // Store token and user data
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
       // Show success message
       setSignupSuccess(true);
       
-      // Redirect to verification page after success
+      // Redirect to profile or dashboard
       setTimeout(() => {
-        navigate('/verify-email', { state: { email: formData.email } });
+        navigate("/profile", { state: { token: data.token, user: data.user } });
       }, 1500);
       
     } catch (error) {
       console.error('Signup failed:', error);
-      setErrors({ general: 'Signup failed. Please try again.' });
+      const errorMessage = error.message || 'Signup failed. Please try again.';
+      setErrors({ general: errorMessage });
+      
+      // Log to console for debugging
+      if (error.message.includes('Failed to fetch')) {
+        console.error('Network error: Backend server may not be running. Ensure server is running on', API_URL);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSocialSignup = (provider) => {
-    console.log(`Signing up with ${provider}`);
-    // Implement social signup logic here
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const base = `${API_URL}/auth/google`;
+    const guestId = getGuestId();
+    if (provider === 'google') {
+      // Redirect to Google OAuth (include guestId if present)
+      window.location.href = guestId ? `${base}?guestId=${guestId}` : base;
+    } else {
+      // GitHub and Facebook not yet implemented
+      alert(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup coming soon!`);
+    }
   };
 
   // Password strength indicator
@@ -262,7 +296,7 @@ const Signup = () => {
               {signupSuccess && (
                 <div className="absolute -top-20 left-0 right-0 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 animate-slideDown z-10">
                   <CheckCircle className="w-6 h-6" />
-                  <span>Account created! Redirecting to verification...</span>
+                  <span>Account created successfully! Redirecting...</span>
                 </div>
               )}
 
@@ -279,9 +313,15 @@ const Signup = () => {
 
                 {/* General Error Message */}
                 {errors.general && (
-                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-600 text-sm">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    <span>{errors.general}</span>
+                  <div className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg flex items-start gap-3 text-red-700 text-sm shadow-md">
+                    <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold mb-1">Error</p>
+                      <p>{errors.general}</p>
+                      {errors.general.includes('Network error') && (
+                        <p className="text-xs mt-2 opacity-80">Make sure the backend server is running</p>
+                      )}
+                    </div>
                   </div>
                 )}
 

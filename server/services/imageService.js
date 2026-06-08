@@ -1,7 +1,10 @@
 const axios = require("axios");
+const trackApiUsage = require('../utils/trackApiUsage');
 
-const getRecipeImage = async (query) => {
+const getRecipeImage = async (query, req) => {
   try {
+    // Track usage of Unsplash API
+    await trackApiUsage('UNSPLASH_ACCESS_KEY', req);
     const res = await axios.get(
       `https://api.unsplash.com/search/photos`,
       {

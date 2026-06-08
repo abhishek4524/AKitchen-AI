@@ -17,10 +17,13 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import HelpCenter from "./pages/HelpCenter";
 import Contact from "./pages/Contact";
+import NutritionAIPage from "./pages/NutritionAIPage";
+import AuthRedirectHandler from "./components/AuthRedirectHandler";
 
 const App = () => {
   return (
     <div>
+      <AuthRedirectHandler />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/ai-recipe" element={<AIRecipe />} />
@@ -28,7 +31,7 @@ const App = () => {
         <Route path="/grocery" element={<GroceryPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<LoginPage />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/meal-planner" element={<MealPlanner />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="profile" element={<Profile />} />
@@ -39,6 +42,7 @@ const App = () => {
         <Route path="/terms-conditions" element={<TermsConditions />} />
         <Route path="/help-center" element={<HelpCenter />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/nutrition-ai" element={<NutritionAIPage />} />
       </Routes>
     </div>
   );

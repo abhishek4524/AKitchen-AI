@@ -14,6 +14,7 @@ import paneer from './paneer.jpg'
 import pancake from './pancake.webp'
 import aiRecipeHero from './aiRecipeHero.png'
 import heroBgRm from './heroBgRm.png'
+import aklogo from './aklogo.png'
 
 export const assets = {
     hero,
@@ -31,5 +32,6 @@ export const assets = {
     pancake,
     paneer,
     aiRecipeHero,
-    heroBgRm
+    heroBgRm,
+    aklogo
 }

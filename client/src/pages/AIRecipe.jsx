@@ -2,8 +2,12 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ReviewSection from "../components/ReviewSection";
+import LoginRequiredModal from "../components/LoginRequiredModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { ensureGuestId } from '../utils/guest';
+import CuisineGrid from '../components/CuisineGrid';
+
 
 // ✅ API base from environment variable
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
@@ -11,10 +15,6 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api
 const AIRecipe = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-
-  // Common state for both logged-in and logged-out views
-  const [demoIngredients, setDemoIngredients] = useState("");
-  const [demoRecipe, setDemoRecipe] = useState(null);
 
   // State for logged-in version
   const [ingredients, setIngredients] = useState("");
@@ -48,26 +48,34 @@ const AIRecipe = () => {
     setIsGenerating(true);
     setShowRecipe(false);
     try {
+      let headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      } else {
+        const guestId = ensureGuestId();
+        headers['x-guest-id'] = guestId;
+      }
+
       const response = await fetch(`${API_BASE}/ai/generate-recipe`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        method: 'POST',
+        headers,
         body: JSON.stringify({ ingredients, cuisine, diet }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        if (data?.requiresLogin) {
+          setShowLoginModal(true);
+          return;
+        }
         throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
       }
 
-      // Adjust if recipe is nested inside a property like `data.recipe`
       setGeneratedRecipe(data.recipe || data);
       setShowRecipe(true);
     } catch (error) {
-      console.error("Generate error:", error);
+      console.error('Generate error:', error);
       alert(`Generation failed: ${error.message}`);
     } finally {
       setIsGenerating(false);
@@ -190,7 +198,9 @@ const AIRecipe = () => {
           </p>
         </motion.div>
 
-        {/* Input Card */}
+        {/* Cuisine Explorer */}
+{/* <CuisineGrid onSelectCuisine={setCuisine} /> */}
+{/* Input Card */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -252,9 +262,7 @@ const AIRecipe = () => {
                 </motion.button>
               ))}
             </div>
-            {
-              token ?(
-              <motion.button
+            <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleGenerate}
@@ -273,17 +281,6 @@ const AIRecipe = () => {
                 "🍳 Generate Recipe"
               )}
             </motion.button>
-              ) : (<motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowLoginModal(true)}
-              className="mt-6 w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-70"
-              >
-                  Generate Recipe
-            </motion.button>
-
-              )
-        }
           </div>
         </motion.div>
 
@@ -400,38 +397,11 @@ const AIRecipe = () => {
       {/* Login Modal */}
       <AnimatePresence>
         {showLoginModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50"
-            onClick={() => setShowLoginModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              className="bg-white p-8 rounded-2xl shadow-2xl max-w-md mx-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="text-xl font-bold mb-4">Login Required</h3>
-              <p className="mb-6 text-gray-600">Please login first to generate AI recipes.</p>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => { setShowLoginModal(false); navigate('/login'); }}
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all"
-                >
-                  Login
-                </button>
-                <button
-                  onClick={() => setShowLoginModal(false)}
-                  className="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-all"
-                >
-                  Cancel
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
+          <LoginRequiredModal
+            title="Continue to generate recipes"
+            message="Your free AI request is used. Continue with Google to generate more recipes with your account."
+            onClose={() => setShowLoginModal(false)}
+          />
         )}
       </AnimatePresence>
 

@@ -4,7 +4,9 @@ import './index.css'
 import App from './App.jsx'
 import { BrowserRouter } from 'react-router-dom'
 import ScrollToTop from "./components/ScrollToTop.jsx";
+import { ensureGuestId } from './utils/guest';
 
+ensureGuestId();
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>

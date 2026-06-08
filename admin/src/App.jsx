@@ -1,75 +1,58 @@
-import React, { useState, createContext, useContext, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import AdminLayout from './components/AdminLayout';
-import AdminLogin from './pages/AdminLogin';
-import Dashboard from './pages/Dashboard';
-import RecipesManager from './pages/RecipesManager';
-import UsersManager from './pages/UsersManager';
+import { Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AdminLayout } from "./components/layout/AdminLayout";
+import { Login } from "./pages/Login";
+import { Dashboard } from "./pages/Dashboard";
+import { Users } from "./pages/Users";
+import { Guests } from "./pages/Guests";
+import { Recipes } from "./pages/Recipes";
+import { AILogs } from "./pages/AILogs";
+import { Community } from "./pages/Community";
+import { Analytics } from "./pages/Analytics";
+import { Security } from "./pages/Security";
+import { Notifications } from "./pages/Notifications";
+import { Health } from "./pages/Health";
+import { Settings } from "./pages/Settings";
 
-// Auth Context
-const AuthContext = createContext(null);
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
-};
-
-export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem('adminToken'));
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const login = (newToken, userData) => {
-    localStorage.setItem('adminToken', newToken);
-    setToken(newToken);
-    setUser(userData);
-  };
-
-  const logout = () => {
-    localStorage.removeItem('adminToken');
-    setToken(null);
-    setUser(null);
-  };
-
+function App() {
   return (
-    <AuthContext.Provider value={{ token, user, login, logout, loading, setLoading }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-// Protected Route
-const ProtectedRoute = ({ children }) => {
-  const { token } = useAuth();
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
-};
-
-const App = () => {
-  return (
-    <AuthProvider>
+    <QueryClientProvider client={queryClient}>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<AdminLogin />} />
-
-        {/* Protected Routes */}
-        <Route element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/recipes" element={<RecipesManager />} />
-          <Route path="/users" element={<UsersManager />} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/login" element={<Login />} />
+        
+        <Route element={<AdminLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/guests" element={<Guests />} />
+          <Route path="/recipes" element={<Recipes />} />
+          <Route path="/ai-logs" element={<AILogs />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/security" element={<Security />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/health" element={<Health />} />
+          <Route path="/settings" element={<Settings />} />
+          
+          {/* Fallback route */}
+          <Route path="*" element={
+            <div className="p-6 flex flex-col items-center justify-center h-[60vh]">
+              <h1 className="text-4xl font-bold mb-2">404</h1>
+              <p className="text-muted-foreground text-lg">Page not found or under construction.</p>
+            </div>
+          } />
         </Route>
-
-        {/* Default redirect */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
-    </AuthProvider>
+    </QueryClientProvider>
   );
-};
+}
 
 export default App;

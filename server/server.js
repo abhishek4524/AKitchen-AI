@@ -55,6 +55,19 @@ app.use(
 
 // ✅ Middlewares
 app.use(express.json());
+// Lightweight cookie parser (avoid extra dependency)
+app.use((req, res, next) => {
+  req.cookies = {};
+  const raw = req.headers?.cookie;
+  if (raw) {
+    raw.split(';').forEach((pair) => {
+      const [k, ...v] = pair.split('=');
+      if (!k) return;
+      req.cookies[k.trim()] = decodeURIComponent((v || []).join('=').trim());
+    });
+  }
+  next();
+});
 
 app.use(
   session({
@@ -70,6 +83,8 @@ app.use(passport.session());
 
 // ✅ Routes
 app.use("/auth", authRoutes);
+const usageRoutes = require('./routes/usage');
+app.use('/api/usage', usageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/recipes", recipeRoutes);
@@ -78,6 +93,7 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/grocery", itemRoutes);
 app.use("/api/grocery", suggestionRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api", require("./routes/api"));
 
 
 // ✅ Server Start

@@ -33,6 +33,10 @@ const recipeSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  isFeatured: {
+    type: Boolean,
+    default: false,
+  },
 
   createdAt: {
     type: Date,

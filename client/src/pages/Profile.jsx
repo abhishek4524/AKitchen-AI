@@ -632,7 +632,7 @@ const fetchUserData = async () => {
           </motion.div> */}
         </motion.div>
       </div>
-      <Footer />
+      <Footer className="absolute bottom-0"/>
     </div>
   );
 };

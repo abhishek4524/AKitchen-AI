@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
 
@@ -12,6 +12,45 @@ const AdminLogin = () => {
   const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    window.google?.accounts.id.initialize({
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      callback: handleGoogleLogin,
+    });
+    window.google?.accounts.id.renderButton(
+      document.getElementById("google-login-button"),
+      { theme: "outline", size: "large" }
+    );
+  }, []);
+
+  const handleGoogleLogin = async (response) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/admin/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: response.credential }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        login(data.token, data.user);
+        navigate('/dashboard');
+      } else {
+        setError(data.message || 'Google login failed');
+      }
+    } catch (err) {
+      setError('Connection error.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -88,6 +127,7 @@ const AdminLogin = () => {
             >
               {loading ? 'Logging in...' : 'Login'}
             </button>
+            <div className="flex justify-center mt-4" id="google-login-button"></div>
           </form>
           <p className="text-center text-gray-500 text-sm mt-6">
             Contact your administrator for login credentials
